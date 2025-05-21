@@ -1,0 +1,30 @@
+     /* Basic styling for the transaction list */
+     .transaction-list {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      
+      .transaction-list td, .transaction-list th {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      
+      .transaction-list th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      
+      /* Styling for the floating date and amount */
+      .floating-date-amount {
+        display: inline-block;
+        border-radius: 8px;
+        padding: 4px 8px;
+        margin-right: 8px;
+        font-weight: bold;
+      }
+      
+      .floating-date-amount .date {
+        font-size: 12px;
+        font-weight: normal;
+      }
