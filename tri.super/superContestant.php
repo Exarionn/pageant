@@ -97,6 +97,7 @@
                                                             <div class="form-floating">
                                                                 <select class="form-select p-3" id="contestantIsBoth" name="contestantIsBoth">
                                                                     <option value="" selected disabled>~Select Category Privilege~</option>
+                                                                    <option value="0">No Condition</option>
                                                                     <option value="1">Both Male/Female</option>
                                                                     <option value="2">Both LGBTQ-Gay/Lesbian</option>
                                                                 </select>

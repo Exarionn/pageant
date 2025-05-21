@@ -257,6 +257,9 @@ if(isset($_POST['updateContestantCode'])){
                                 <div class="form-floating">
                                     <select class="form-select" id="updateContestantIsBoth" name="updateContestantIsBoth" required>
                                         <option value="" disabled>~Select Gender~</option>
+                                        <option value="0" <?php echo ($rowUpdate['is_both'] == "0") ? 'selected' : '' ?>>
+                                            No Condition
+                                        </option>
                                         <option value="1" <?php echo ($rowUpdate['is_both'] == "1") ? 'selected' : '' ?>>
                                             Both Male/Female
                                         </option>
