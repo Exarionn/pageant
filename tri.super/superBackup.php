@@ -33,7 +33,7 @@
     </head>
 
     <body class="sb-nav-fixed">
-    <?php include "../include/topNav.php";?>
+    <?php include "../include/superinclude/superTopNav.php";?>
         <div id="layoutSidenav">
             <div id="layoutSidenav_nav">
             <?php include "../include/superinclude/superSidenav.php";?>
@@ -48,14 +48,16 @@
                                 <legend>Pageant Legend</legend>
                                 <div class="card">
                                     <div class="card-body">
-                                            <li class="mt-3 text-danger"><strong>Patch (NEW):</strong></li>
+                                            <li class="mt-3 text-danger"><strong>Patch (05/212025):</strong></li>
+                                            <li><strong>New Privilege Added in Contestant:</strong> put Both in Contestant if score condition is both Male, female, gay or lesbian </li>
+                                            <li class="mt-3 text-danger"><strong>Patch (2024):</strong></li>
                                             <li><strong>New Settings Added:</strong> Pageant Status Determine the Type if the program is General or Not.. </li>
                                             <li><strong>Affected Part Admin Report</strong> This Patch is a condition to the title of the pageant Ex.: from Event Production summary: from Female Category Summary to General Summary if Condition is enable from setting</li>
                                             <li><strong>New Weighted Scoring Pageant Type Point or Percentage System:</strong> Affected Admin Report vary to the Weighted Scoring for the Report reflected.</li>
                                             <li><strong>Hide Gender if General</strong> Hides the gender in the judge if general also in Report</li>
                                             <li><strong>Special Event Type Added:</strong> For Separate Scoring and Award Winner! Computation is base on the Point System, TotalScore / NumberOfJudge = Score</li>
                                             <hr/>
-                                            <li class="mt-3 text-danger"><strong>Patch (FIX):</strong></li>
+                                            <li class="mt-3 text-danger"><strong>Patch (FIX) 2024:</strong></li>
                                             <li><strong>FIX: Percentage to Average:</strong> This changes the report removing the percentage</li>
                                         </ul>
                                         <hr/>

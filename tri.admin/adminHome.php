@@ -32,7 +32,7 @@
     </head>
 
     <body class="sb-nav-fixed">
-    <?php include "../include/topNav.php";?>
+    <?php include "../include/admininclude/adminTopNav.php";?>
         <div id="layoutSidenav">
             <div id="layoutSidenav_nav">
             <?php include "../include/admininclude/adminSideNav.php";?>
@@ -105,6 +105,9 @@
                     data: {event_judge_scores: event_judge_scores},
                     success: function(result){
                         $(".event_summary").html(result);
+                        // Reset tab to default ("Female")
+                        const defaultTab = new bootstrap.Tab(document.querySelector('#female-tab'));
+                        defaultTab.show();
                     }});
 
                 }
@@ -129,6 +132,9 @@
                             conWeightedScoring: conWeightedScoring},
                     success: function(result){
                         $(".event_summary").html(result);
+                        // Reset tab to default ("Female")
+                        const defaultTab = new bootstrap.Tab(document.querySelector('#female-tab'));
+                        defaultTab.show();
                     }});
             });
         });
@@ -150,6 +156,9 @@
                             conWeightedScoringSpecial: conWeightedScoringSpecial},
                     success: function(result){
                         $(".event_summary").html(result);
+                        // Reset tab to default ("Female")
+                        const defaultTab = new bootstrap.Tab(document.querySelector('#female-tab'));
+                        defaultTab.show();
                     }});
             });
         });
@@ -170,7 +179,10 @@
                             conGeneralFinal: conGeneralFinal,
                             conWeightedScoringFinal: conWeightedScoringFinal},
                     success: function(result){
-                        $(".event_summary").html(result);  
+                        $(".event_summary").html(result); 
+                        // Reset tab to default ("Female")
+                        const defaultTab = new bootstrap.Tab(document.querySelector('#female-tab'));
+                        defaultTab.show();
                     }});
             });
         });
@@ -229,8 +241,9 @@
                     //     buttons[i].style.display = 'inline-block';
                     // }
 
-                    // Optionally, close the new window after printing
-                    printWindow.close();
+                    setTimeout(() => {
+                        printWindow.close();
+                    }, 1000);
                 };
             }
 

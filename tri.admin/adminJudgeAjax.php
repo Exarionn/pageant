@@ -104,6 +104,37 @@
                                                     </div>';
                                             echo '</div>';
                                         echo '</form>'; 
+
+                                        echo '
+                                        <br>
+                                        <ul class="nav nav-tabs" id="genderTabs" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="female-tab" data-bs-toggle="tab" data-bs-target="#female"
+                                                    type="button" role="tab" aria-controls="female" aria-selected="true">Female</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="male-tab" data-bs-toggle="tab" data-bs-target="#male"
+                                                    type="button" role="tab" aria-controls="male" aria-selected="false">Male</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="both-mf-tab" data-bs-toggle="tab" data-bs-target="#both-mf"
+                                                    type="button" role="tab" aria-controls="both-mf" aria-selected="false">Both Male/Female</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="gay-tab" data-bs-toggle="tab" data-bs-target="#gay"
+                                                    type="button" role="tab" aria-controls="gay" aria-selected="false">Gay</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="lesbian-tab" data-bs-toggle="tab" data-bs-target="#lesbian"
+                                                    type="button" role="tab" aria-controls="lesbian" aria-selected="false">Lesbian</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="both-gl-tab" data-bs-toggle="tab" data-bs-target="#both-gl"
+                                                    type="button" role="tab" aria-controls="both-gl" aria-selected="false">Both Gay/Lesbian</button>
+                                            </li>
+                                        </ul>
+                                        
+                                        ';
     
 
                         if(isset($_GET['sort']) && isset($_GET['selected_evnts']) && isset($_GET['selected_judge'])) {
@@ -119,8 +150,10 @@
                                     
                                     $contestantsByCategoryFemale  = [];
                                     $contestantsByCategoryMale  = [];
+                                    $contestantsByCategoryMaleFemale = [];
                                     $contestantsByCategoryGay = [];
                                     $contestantsByCategoryLesbian = [];
+                                    $contestantsByCategoryGayLesbian = [];
                                     
 
                                     // Fetch female contestant by category list using parameterized query
@@ -151,6 +184,22 @@
                                     if ($resultEventContestantByMale) {
                                         while ($row = $resultEventContestantByMale->fetch_assoc()) {
                                             $contestantsByCategoryMale[] = $row;
+                                        }
+                                    } else {
+                                        // Handle database query error without revealing sensitive information
+                                        echo "Error fetching contestant list";
+                                        exit;
+                                    }
+
+                                    // Fetch male/female contestant by category list using parameterized query
+                                    $eventContestantByCategoryMaleFemaleQuery = contestantListFemaleMaleBoth;
+                                    $stmt = $db->prepare($eventContestantByCategoryMaleFemaleQuery);
+                                    $stmt->execute();
+                                    $resultEventContestantByMaleFemale = $stmt->get_result();
+
+                                    if ($resultEventContestantByMaleFemale) {
+                                        while ($row = $resultEventContestantByMaleFemale->fetch_assoc()) {
+                                            $contestantsByCategoryMaleFemale[] = $row;
                                         }
                                     } else {
                                         // Handle database query error without revealing sensitive information
@@ -191,6 +240,22 @@
                                         echo "Error fetching contestant list";
                                         exit;
                                     }
+
+                                    // Fetch gay/lesbian contestant by category list using parameterized query
+                                    $eventContestantByCategoryGayLesbianQuery = contestantListLgbtqBoth;
+                                    $stmt = $db->prepare($eventContestantByCategoryGayLesbianQuery);
+                                    $stmt->execute();
+                                    $resultEventContestantByGayLesbian = $stmt->get_result();
+
+                                    if ($resultEventContestantByGayLesbian) {
+                                        while ($row = $resultEventContestantByGayLesbian->fetch_assoc()) {
+                                            $contestantsByCategoryGayLesbian[] = $row;
+                                        }
+                                    } else {
+                                        // Handle database query error without revealing sensitive information
+                                        echo "Error fetching contestant list";
+                                        exit;
+                                    }    
 
                                     $eventCriteriaQuery = criteriaList;
                                     $stmt = $db->prepare($eventCriteriaQuery);
@@ -250,10 +315,11 @@
                         $judgeCategoryIsBoth = $fetchResultEventCategoryByJudge['is_both'];
                         // echo $judgeCategoryIsBoth;
 
-                           //both Female and Male
-                            //if ($judgeCategoryIsBoth == "1") {
-
-                                if (!empty($contestantsByCategoryFemale)){
+                            $judge .='
+                        <div class="tab-content border border-top-0 p-3" id="genderTabsContent">
+                            <div class="tab-pane fade text-center show active" id="female" role="tabpanel" aria-labelledby="female-tab">
+';
+                    if (!empty($contestantsByCategoryFemale)){
 //=============================================================== female table ==========================================================
 
                                     if ($isGeneral == 1) {  // Use double equal sign for comparison
@@ -415,9 +481,11 @@
                                                 <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data1\'], [\'selected\', \'fm-hd\'])">Print Summary</button>
                                             </div>';
                                 }
-
-
-                                if (!empty($contestantsByCategoryMale)){
+$judge .='
+                            </div>
+                            <div class="tab-pane fade text-center" id="male" role="tabpanel" aria-labelledby="male-tab">
+';
+                    if (!empty($contestantsByCategoryMale)){
 //=============================================================== Male table ==========================================================
 
                                             if ($isGeneral == 1) {  // Use double equal sign for comparison
@@ -576,10 +644,334 @@
                                                 <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data2\'], [\'selected\', \'m-hd\'])">Print Summary</button>
                                             </div>';
                                     }
-                            // }
-                            // else{
+$judge .='
+                            </div>
+                            <div class="tab-pane fade text-center" id="both-mf" role="tabpanel" aria-labelledby="both-mf-tab">
+';
+                    if (!empty($contestantsByCategoryMaleFemale)){
+//=============================================================== Male table ==========================================================
 
-                                if (!empty($contestantsByCategoryLesbian)){
+                                            if ($isGeneral == 1) {  // Use double equal sign for comparison
+                                                $judge .= '
+                                                    <h6 class="m-hd mt-5 text-muted" align="center">General Summary</h6>
+                                                ';
+                                                $eventTitle = ($fetchResultEvents['event_type'] == "SP") ? "Special Event" : "";
+                                                $judge .= '<h3 class="mt-2 text-danger selected" align="center">' . $eventTitle . '</h3>';
+                                            } else {
+                                                $judge .= '
+                                                    <h6 class="m-hd mt-5 text-muted" align="center">Male Category Summary</h6>
+                                                ';
+                                                $eventTitle = ($fetchResultEvents['event_type'] == "SP") ? "Special Event" : "";
+                                                $judge .= '<h3 class="mt-2 text-danger selected" align="center">' . $eventTitle . '</h3>';
+                                            }
+                                            $judge .= '
+                                            
+                                            <div class="card-body table-responsive-sm">
+                                                <table class="table table-hover" id="data2">
+                                                    <thead>
+                                                        <tr>';
+
+                                            $judge .= '
+                                                            <th>
+                                                                <div class="small ms-3 me-3" align="center">
+                                                                    Candidate No.
+                                                                </div>
+                                                            </th>';
+                                        $totalPercent = 0;
+                                        foreach ($resultEventCriteria as $eventCriteriaResult) {
+                                            $criteriaHeader = $eventCriteriaResult['criteria_name'];
+                                            $criteriaHeaderPercent = $eventCriteriaResult['percent'];
+
+                                            $totalPercent += $criteriaHeaderPercent;
+
+                                            $judge .= ' 
+                                                            <th>
+                                                                <div class="small ms-3 me-3" align="center">'.$criteriaHeader.'('.$criteriaHeaderPercent.')</div>
+                                                            </th>';
+                                        }
+
+                                            $judge .= '
+                                                            <th>
+                                                                <div class="small text-success ms-3 me-3" align="center">
+                                                                    Total('. $totalPercent .')
+                                                                </div>
+                                                            </th>';
+
+                                            $judge .= '
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>';
+
+                                                    foreach ($contestantsByCategoryMaleFemale as $eventContestantResult) {
+                                                        $contestantCode = htmlspecialchars($eventContestantResult['code']);            
+                                                        $contestantIsFinal = htmlspecialchars($eventContestantResult['is_finalist']);
+                                                        $contestantSequence = htmlspecialchars($eventContestantResult['sequence']);
+                                                        $contestantName = htmlspecialchars($eventContestantResult['name']);
+                                                        $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
+                                                        $totalScore = NULL; // Initialize total score for each contestant
+                                                    
+
+                                                        // Filter contestants if the "Finalist?" checkbox is checked
+                                                        if ($isFinalistChecked === '1') {
+                                                            if ($contestantIsFinal != '1') {
+                                                                // Skip non-finalists if checkbox is checked
+                                                                continue;
+                                                            }
+                                                        }
+
+                                                        $judge .= '
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="small text-center">
+                                                                        '. $contestantSequence .' ';
+
+                                                if ($contestantGender != null && $isGeneral == 0) {
+                                                    // Add your content when $contestantGender is true
+                                                    $judge .= ' - '. $contestantGender .' ';
+                                                }
+                                                else{
+                                                    $judge .= '';
+                                                }
+                                                                        
+                                                    $judge .= '                
+                                                                    </div>
+                                                                </td>';
+                                                    
+                                                        foreach($resultEventCriteria as $eventCriteriaResult) {
+                                                            $criteriaCode = htmlspecialchars($eventCriteriaResult['code']);
+                                                            $selected_evnts = $_GET['selected_evnts'];
+                                                            $selected_judge = $_GET['selected_judge'];
+                                                            $eventScoreQuery = eventScoreList;
+                                                            $stmt = $db->prepare($eventScoreQuery);
+                                                            if (!$stmt) {
+                                                                // Error handling for failed prepared statement
+                                                                $errorMessage = $db->error;
+                                                                // Handle error, log it, or display a message to the user
+                                                                // Example: die("Database error: " . $errorMessage);
+                                                                continue; // Skip to the next iteration
+                                                            }
+                                                            $stmt->bind_param("ssss", $selected_evnts, $contestantCode, $selected_judge, $criteriaCode);
+                                                            $stmt->execute();
+                                                            $resultEventScore = $stmt->get_result();
+                                                            if (!$resultEventScore) {
+                                                                // Error handling for failed query execution
+                                                                $errorMessage = $db->error;
+                                                                // Handle error, log it, or display a message to the user
+                                                                // Example: die("Database error: " . $errorMessage);
+                                                                continue; // Skip to the next iteration
+                                                            }
+                                                            $fetchResultEventScore = $resultEventScore->fetch_assoc();
+                                                            if ($fetchResultEventScore !== null) {
+                                                                // Access $fetchResultEventScore['score'] here
+                                                                $score = $fetchResultEventScore['score'];
+                                                                $totalScore += $score; // Add individual score to total score
+                                                                $judge .= '
+                                                                    <td>
+                                                                        <div class="small text-center">
+                                                                            '.$score.'
+                                                                        </div>
+                                                                    </td>';
+                                                            } else {
+                                                                // Handle the case where $fetchResultEventScore is null
+                                                                // For example, you could output a placeholder or handle it differently
+                                                                $judge .= '
+                                                                    <td>
+                                                                        <div class="small text-center">
+                                                                            
+                                                                        </div>
+                                                                    </td>';
+                                                            }
+                                                        }
+                                                    
+                                                        // Add total score cell
+                                                        $judge .= '
+                                                            <td>
+                                                                <div class="small text-center">
+                                                                    '.$totalScore.'
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <button data-code='. $contestantCode .' class="updateGenCode btn btn-outline-warning btn-sm rounded">Update</button>
+                                                            </td>';
+                                                    }
+                                                    
+                                                    
+
+                                            $judge .= '
+                                                    </tbody>
+                                                </table>
+                                            </div>';
+
+                                            $judge .= '
+                                            <div class="" align="center">
+                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data2\'], [\'selected\', \'m-hd\'])">Print Summary</button>
+                                            </div>';
+                                    }
+$judge .='
+                            </div>
+                            <div class="tab-pane fade text-center" id="gay" role="tabpanel" aria-labelledby="gay-tab">
+';
+                     if (!empty($contestantsByCategoryGay)){
+//=============================================================== Lgbtq Gay table ==========================================================
+
+                                if ($isGeneral == 1) {  // Use double equal sign for comparison
+                                    $judge .= '
+                                        <h6 class="gy-hd mt-5 text-muted" align="center">General Summary</h6>
+                                    ';
+                                    $eventTitle = ($fetchResultEvents['event_type'] == "SP") ? "Special Event" : "";
+                                    $judge .= '<h3 class="mt-2 text-danger selected" align="center">' . $eventTitle . '</h3>';
+                                } else {
+                                    $judge .= '
+                                        <h6 class="gy-hd mt-5 text-muted" align="center">Gay Category Summary</h6>
+                                    ';
+                                    $eventTitle = ($fetchResultEvents['event_type'] == "SP") ? "Special Event" : "";
+                                    $judge .= '<h3 class="mt-2 text-danger selected" align="center">' . $eventTitle . '</h3>';
+                                }
+                                $judge .= '
+                                            <div class="card-body table-responsive-sm">
+                                                <table class="table table-hover" id="data3">
+                                                    <thead>
+                                                        <tr>';
+
+                                            $judge .= '
+                                                            <th>
+                                                                <div class="small ms-3 me-3" align="center">
+                                                                    Candidate No.
+                                                                </div>
+                                                            </th>';
+                                        $totalPercent = 0;
+                                        foreach ($resultEventCriteria as $eventCriteriaResult) {
+                                            $criteriaHeader = $eventCriteriaResult['criteria_name'];
+                                            $criteriaHeaderPercent = $eventCriteriaResult['percent'];
+                                        $totalPercent += $criteriaHeaderPercent;
+                                            
+                                            $judge .= ' 
+                                                            <th>
+                                                                <div class="small ms-3 me-3" align="center">'.$criteriaHeader.'('.$criteriaHeaderPercent.')</div>
+                                                            </th>';
+                                        }
+
+                                            $judge .= '
+                                                            <th>
+                                                                <div class="small text-success ms-3 me-3" align="center">
+                                                                    Total('.$totalPercent.')
+                                                                </div>
+                                                            </th>';
+
+                                            $judge .= '
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>';
+
+                                                    foreach ($contestantsByCategoryGay as $eventContestantResult) {
+                                                        $contestantCode = htmlspecialchars($eventContestantResult['code']);
+                                                        $contestantIsFinal = htmlspecialchars($eventContestantResult['is_finalist']);
+                                                        $contestantSequence = htmlspecialchars($eventContestantResult['sequence']);
+                                                        $contestantName = htmlspecialchars($eventContestantResult['name']);
+                                                        $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
+                                                        $totalScore = NULL; // Initialize total score for each contestant
+                                                
+                                                        // Filter contestants if the "Finalist?" checkbox is checked
+                                                        if ($isFinalistChecked === '1') {
+                                                            if ($contestantIsFinal != '1') {
+                                                                // Skip non-finalists if checkbox is checked
+                                                                continue;
+                                                            }
+                                                        }
+
+                                                        $judge .= '
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="small text-center">
+                                                                    '. $contestantSequence .' ';
+
+                                                if ($contestantGender != null && $isGeneral == 0) {
+                                                    // Add your content when $contestantGender is true
+                                                    $judge .=  ' - '. $contestantGender .' ';
+                                                }
+                                                else{
+                                                    $judge .= '';
+                                                }
+                                                                        
+                                                    $judge .= '                
+                                                                    </div>
+                                                                </td>';
+                                                    
+                                                        foreach($resultEventCriteria as $eventCriteriaResult) {
+                                                            $criteriaCode = htmlspecialchars($eventCriteriaResult['code']);
+                                                            $selected_evnts = $_GET['selected_evnts'];
+                                                            $selected_judge = $_GET['selected_judge'];
+                                                            $eventScoreQuery = eventScoreList;
+                                                            $stmt = $db->prepare($eventScoreQuery);
+                                                            if (!$stmt) {
+                                                                // Error handling for failed prepared statement
+                                                                $errorMessage = $db->error;
+                                                                // Handle error, log it, or display a message to the user
+                                                                // Example: die("Database error: " . $errorMessage);
+                                                                continue; // Skip to the next iteration
+                                                            }
+                                                            $stmt->bind_param("ssss", $selected_evnts, $contestantCode, $selected_judge, $criteriaCode);
+                                                            $stmt->execute();
+                                                            $resultEventScore = $stmt->get_result();
+                                                            if (!$resultEventScore) {
+                                                                // Error handling for failed query execution
+                                                                $errorMessage = $db->error;
+                                                                // Handle error, log it, or display a message to the user
+                                                                // Example: die("Database error: " . $errorMessage);
+                                                                continue; // Skip to the next iteration
+                                                            }
+                                                            $fetchResultEventScore = $resultEventScore->fetch_assoc();
+                                                            if ($fetchResultEventScore !== null) {
+                                                                // Access $fetchResultEventScore['score'] here
+                                                                $score = $fetchResultEventScore['score'];
+                                                                $totalScore += $score; // Add individual score to total score
+                                                                $judge .= '
+                                                                    <td>
+                                                                        <div class="small text-center">
+                                                                            '.$score.'
+                                                                        </div>
+                                                                    </td>';
+                                                            } else {
+                                                                // Handle the case where $fetchResultEventScore is null
+                                                                // For example, you could output a placeholder or handle it differently
+                                                                $judge .= '
+                                                                    <td>
+                                                                        <div class="small text-center">
+                                                                            
+                                                                        </div>
+                                                                    </td>';
+                                                            }
+                                                        }
+                                                    
+                                                        // Add total score cell
+                                                        $judge .= '
+                                                            <td>
+                                                                <div class="small text-center">
+                                                                    '.$totalScore.'
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <button data-code='. $contestantCode .' class="updateGenCode btn btn-outline-warning btn-sm rounded">Update</button>
+                                                            </td>';
+                                                    }
+                                                    
+                                                    
+
+                                            $judge .= '
+                                                    </tbody>
+                                                </table>
+                                            </div>';
+
+                                            $judge .= '
+                                            <div class="" align="center">
+                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data3\'], [\'selected\', \'gy-hd\'])">Print Summary</button>
+                                            </div>';
+                                            }
+$judge .='
+                            </div>
+                            <div class="tab-pane fade text-center" id="lesbian" role="tabpanel" aria-labelledby="lesbian-tab">
+';
+                    if (!empty($contestantsByCategoryLesbian)){
 //=============================================================== Lgbtq Lesbian table ==========================================================
                                 if ($isGeneral == 1) {  // Use double equal sign for comparison
                                     $judge .= '
@@ -736,165 +1128,16 @@
                                                 <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data4\'], [\'selected\', \'ls-hd\'])">Print Summary</button>
                                             </div>';
                                 }
+$judge .='
+                            </div>
+                            <div class="tab-pane fade text-center" id="both-gl" role="tabpanel" aria-labelledby="both-gl-tab">
+';
 
-                                if (!empty($contestantsByCategoryGay)){
-//=============================================================== Lgbtq Gay table ==========================================================
+$judge .='
+                            </div>
+                        </div>
+';
 
-                                if ($isGeneral == 1) {  // Use double equal sign for comparison
-                                    $judge .= '
-                                        <h6 class="gy-hd mt-5 text-muted" align="center">General Summary</h6>
-                                    ';
-                                    $eventTitle = ($fetchResultEvents['event_type'] == "SP") ? "Special Event" : "";
-                                    $judge .= '<h3 class="mt-2 text-danger selected" align="center">' . $eventTitle . '</h3>';
-                                } else {
-                                    $judge .= '
-                                        <h6 class="gy-hd mt-5 text-muted" align="center">Gay Category Summary</h6>
-                                    ';
-                                    $eventTitle = ($fetchResultEvents['event_type'] == "SP") ? "Special Event" : "";
-                                    $judge .= '<h3 class="mt-2 text-danger selected" align="center">' . $eventTitle . '</h3>';
-                                }
-                                $judge .= '
-                                            <div class="card-body table-responsive-sm">
-                                                <table class="table table-hover" id="data3">
-                                                    <thead>
-                                                        <tr>';
-
-                                            $judge .= '
-                                                            <th>
-                                                                <div class="small ms-3 me-3" align="center">
-                                                                    Candidate No.
-                                                                </div>
-                                                            </th>';
-                                        $totalPercent = 0;
-                                        foreach ($resultEventCriteria as $eventCriteriaResult) {
-                                            $criteriaHeader = $eventCriteriaResult['criteria_name'];
-                                            $criteriaHeaderPercent = $eventCriteriaResult['percent'];
-                                        $totalPercent += $criteriaHeaderPercent;
-                                            
-                                            $judge .= ' 
-                                                            <th>
-                                                                <div class="small ms-3 me-3" align="center">'.$criteriaHeader.'('.$criteriaHeaderPercent.')</div>
-                                                            </th>';
-                                        }
-
-                                            $judge .= '
-                                                            <th>
-                                                                <div class="small text-success ms-3 me-3" align="center">
-                                                                    Total('.$totalPercent.')
-                                                                </div>
-                                                            </th>';
-
-                                            $judge .= '
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>';
-
-                                                    foreach ($contestantsByCategoryGay as $eventContestantResult) {
-                                                        $contestantCode = htmlspecialchars($eventContestantResult['code']);
-                                                        $contestantIsFinal = htmlspecialchars($eventContestantResult['is_finalist']);
-                                                        $contestantSequence = htmlspecialchars($eventContestantResult['sequence']);
-                                                        $contestantName = htmlspecialchars($eventContestantResult['name']);
-                                                        $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                                                        $totalScore = NULL; // Initialize total score for each contestant
-                                                
-                                                        // Filter contestants if the "Finalist?" checkbox is checked
-                                                        if ($isFinalistChecked === '1') {
-                                                            if ($contestantIsFinal != '1') {
-                                                                // Skip non-finalists if checkbox is checked
-                                                                continue;
-                                                            }
-                                                        }
-
-                                                        $judge .= '
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="small text-center">
-                                                                    '. $contestantSequence .' ';
-
-                                                if ($contestantGender != null && $isGeneral == 0) {
-                                                    // Add your content when $contestantGender is true
-                                                    $judge .=  ' - '. $contestantGender .' ';
-                                                }
-                                                else{
-                                                    $judge .= '';
-                                                }
-                                                                        
-                                                    $judge .= '                
-                                                                    </div>
-                                                                </td>';
-                                                    
-                                                        foreach($resultEventCriteria as $eventCriteriaResult) {
-                                                            $criteriaCode = htmlspecialchars($eventCriteriaResult['code']);
-                                                            $selected_evnts = $_GET['selected_evnts'];
-                                                            $selected_judge = $_GET['selected_judge'];
-                                                            $eventScoreQuery = eventScoreList;
-                                                            $stmt = $db->prepare($eventScoreQuery);
-                                                            if (!$stmt) {
-                                                                // Error handling for failed prepared statement
-                                                                $errorMessage = $db->error;
-                                                                // Handle error, log it, or display a message to the user
-                                                                // Example: die("Database error: " . $errorMessage);
-                                                                continue; // Skip to the next iteration
-                                                            }
-                                                            $stmt->bind_param("ssss", $selected_evnts, $contestantCode, $selected_judge, $criteriaCode);
-                                                            $stmt->execute();
-                                                            $resultEventScore = $stmt->get_result();
-                                                            if (!$resultEventScore) {
-                                                                // Error handling for failed query execution
-                                                                $errorMessage = $db->error;
-                                                                // Handle error, log it, or display a message to the user
-                                                                // Example: die("Database error: " . $errorMessage);
-                                                                continue; // Skip to the next iteration
-                                                            }
-                                                            $fetchResultEventScore = $resultEventScore->fetch_assoc();
-                                                            if ($fetchResultEventScore !== null) {
-                                                                // Access $fetchResultEventScore['score'] here
-                                                                $score = $fetchResultEventScore['score'];
-                                                                $totalScore += $score; // Add individual score to total score
-                                                                $judge .= '
-                                                                    <td>
-                                                                        <div class="small text-center">
-                                                                            '.$score.'
-                                                                        </div>
-                                                                    </td>';
-                                                            } else {
-                                                                // Handle the case where $fetchResultEventScore is null
-                                                                // For example, you could output a placeholder or handle it differently
-                                                                $judge .= '
-                                                                    <td>
-                                                                        <div class="small text-center">
-                                                                            
-                                                                        </div>
-                                                                    </td>';
-                                                            }
-                                                        }
-                                                    
-                                                        // Add total score cell
-                                                        $judge .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    '.$totalScore.'
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <button data-code='. $contestantCode .' class="updateGenCode btn btn-outline-warning btn-sm rounded">Update</button>
-                                                            </td>';
-                                                    }
-                                                    
-                                                    
-
-                                            $judge .= '
-                                                    </tbody>
-                                                </table>
-                                            </div>';
-
-                                            $judge .= '
-                                            <div class="" align="center">
-                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data3\'], [\'selected\', \'gy-hd\'])">Print Summary</button>
-                                            </div>';
-                                    }
-                                
-                            //}
 
                         } 
                         else {

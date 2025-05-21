@@ -115,6 +115,22 @@ if ($resultEventContestantByGay) {
     echo "Error fetching contestant list";
     exit;
 }
+
+// Fetch Gay/Lesbian contestant by category list using parameterized query
+$eventContestantByCategoryGayLesbianQuery = contestantByCategoryFinalListGayLesbianBoth;
+$stmt = $db->prepare($eventContestantByCategoryGayLesbianQuery);
+$stmt->execute();
+$resultEventContestantByGayLesbian = $stmt->get_result();
+
+if ($resultEventContestantByGayLesbian) {
+    while ($row = $resultEventContestantByGayLesbian->fetch_assoc()) {
+        $contestantsByCategoryGayLesbian[] = $row;
+    }
+} else {
+    // Handle database query error without revealing sensitive information
+    echo "Error fetching contestant list";
+    exit;
+}
     
 
     // get criteria percentage list
@@ -147,8 +163,6 @@ if ($resultEventContestantByGay) {
             $summary .= 'No data available';
         }
 
-
-        
 $summary .='
                         <div class="tab-content border border-top-0 p-3" id="genderTabsContent">
                             <div class="tab-pane fade text-center show active" id="female" role="tabpanel" aria-labelledby="female-tab">
@@ -1381,8 +1395,6 @@ $summary .='
 $summary .='
                             </div>
                         </div>
-
-
 ';
 
     } else {
