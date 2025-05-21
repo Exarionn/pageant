@@ -48,7 +48,7 @@
                                 <legend>Pageant Legend</legend>
                                 <div class="card">
                                     <div class="card-body">
-                                            <li class="mt-3 text-danger"><strong>Patch (05/212025):</strong></li>
+                                            <li class="mt-3 text-danger"><strong>Patch (05/21/2025):</strong></li>
                                             <li><strong>New Privilege Added in Contestant:</strong> put Both in Contestant if score condition is both Male, female, gay or lesbian </li>
                                             <li class="mt-3 text-danger"><strong>Patch (2024):</strong></li>
                                             <li><strong>New Settings Added:</strong> Pageant Status Determine the Type if the program is General or Not.. </li>
