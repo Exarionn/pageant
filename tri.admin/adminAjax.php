@@ -14,10 +14,10 @@ if(isset($_POST['event_category'])) {
     // Initialize an array to hold contestant data
     $contestantsByCategoryFemale  = [];
     $contestantsByCategoryMale  = [];
-    $contestantsByCategoryBothMaleFemale  = [];
     $contestantsByCategoryLesbian  = [];
-    $contestantsByCategorygay  = [];
-    $contestantsByCategoryBothGayLesbian =[];
+    $contestantsByCategoryGay  = [];
+    $contestantsByCategoryBothMF = [];
+    $contestantsByCategoryBothLGBTQ = [];
     
     // Fetch contestant list using parameterized query (IMPORTANT!!)
     $eventContestantQuery = contestantList;
@@ -51,6 +51,7 @@ if(isset($_POST['event_category'])) {
         exit;
     }
 
+
     // Fetch male contestant by category list using parameterized query
     $eventContestantByCategoryMaleQuery = contestantListMale;
     $stmt = $db->prepare($eventContestantByCategoryMaleQuery);
@@ -60,22 +61,6 @@ if(isset($_POST['event_category'])) {
     if ($resultEventContestantByMale) {
         while ($row = $resultEventContestantByMale->fetch_assoc()) {
             $contestantsByCategoryMale[] = $row;
-        }
-    } else {
-        // Handle database query error without revealing sensitive information
-        echo "Error fetching contestant list";
-        exit;
-    }
-
-    // Fetch male/female contestant by category list using parameterized query
-    $eventContestantByCategoryMaleFemaleQuery = contestantListFemaleMaleBoth;
-    $stmt = $db->prepare($eventContestantByCategoryMaleFemaleQuery);
-    $stmt->execute();
-    $resultEventContestantByMaleFemale = $stmt->get_result();
-
-    if ($resultEventContestantByMaleFemale) {
-        while ($row = $resultEventContestantByMaleFemale->fetch_assoc()) {
-            $contestantsByCategoryBothMaleFemale[] = $row;
         }
     } else {
         // Handle database query error without revealing sensitive information
@@ -115,21 +100,37 @@ if(isset($_POST['event_category'])) {
         exit;
     }
 
-    // Fetch gay/lesbian contestant by category list using parameterized query
-    $eventContestantByCategoryGayLesbianQuery = contestantListLgbtqBoth;
-    $stmt = $db->prepare($eventContestantByCategoryGayLesbianQuery);
+    // Fetch Both Male and Female contestant by category list using parameterized query
+    $eventContestantByCategoryBothMFQuery = contestantListBothMF;
+    $stmt = $db->prepare($eventContestantByCategoryBothMFQuery);
     $stmt->execute();
-    $resultEventContestantByGayLesbian = $stmt->get_result();
+    $resultEventContestantByBothMF = $stmt->get_result();
 
-    if ($resultEventContestantByGayLesbian) {
-        while ($row = $resultEventContestantByGayLesbian->fetch_assoc()) {
-            $contestantsByCategoryBothGayLesbian[] = $row;
+    if ($resultEventContestantByBothMF) {
+        while ($row = $resultEventContestantByBothMF->fetch_assoc()) {
+            $contestantsByCategoryBothMF[] = $row;
         }
     } else {
         // Handle database query error without revealing sensitive information
         echo "Error fetching contestant list";
         exit;
-    }    
+    }
+
+    // Fetch Both LGBTQ contestant by category list using parameterized query
+    $eventContestantByCategoryBothLGBTQQuery = contestantListBothLGBTQ;
+    $stmt = $db->prepare($eventContestantByCategoryBothLGBTQQuery);
+    $stmt->execute();
+    $resultEventContestantByBothLGBTQ = $stmt->get_result();
+
+    if ($resultEventContestantByBothLGBTQ) {
+        while ($row = $resultEventContestantByBothLGBTQ->fetch_assoc()) {
+            $contestantsByCategoryBothLGBTQ[] = $row;
+        }
+    } else {
+        // Handle database query error without revealing sensitive information
+        echo "Error fetching contestant list";
+        exit;
+    }
 
     // get criteria percentage list
     $eventCriteriaPercentageQuery = criteriaPercentageList;
@@ -155,6 +156,134 @@ if(isset($_POST['event_category'])) {
     $resultEventJudgeCount = $stmt->get_result();
 
 
+    // Function to generate category table
+    function generateCategoryTable($contestants, $categoryName, $categoryClass, $tableId, $judgeQuery, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral) {
+        if (empty($contestants)) return '';
+        
+        $output = '';
+        
+        if ($conGeneral == 1) {
+            $output .= '<h6 class="'.$categoryClass.'-hd mt-5 text-muted" align="center">General Summary</h6>';
+        } else {
+            $output .= '<h6 class="'.$categoryClass.'-hd mt-4 text-muted" align="center">'.$categoryName.' Category Summary</h6>';
+        }
+        
+        $output .= '<div class="card-body table-responsive-sm">
+                        <table class="table table-hover" id="'.$tableId.'">
+                            <thead>
+                                <tr>
+                                    <th><div class="small" align="center">Candidate No.</div></th>';
+        
+        // Get judge list
+        $stmt = $db->prepare($judgeQuery);
+        $stmt->execute();
+        $resultEventJudge = $stmt->get_result();
+        
+        if ($resultEventJudge->num_rows > 0) {
+            foreach ($resultEventJudge as $eventJudgeResult) {
+                $output .= '<th data-type="number"><div class="small ms-3 me-3" align="center">'.$eventJudgeResult['name'].'</div></th>';
+            }
+        }
+        
+    $avgLabel = ($conWeightedScoring == 1) ? ('Average (%) - '. $fetchResultEvent['event_name'] . '') : ('Average (pts) - ' . $fetchResultEvent['event_name']);
+    $output .= '<th data-type="number"><div class="small text-success" align="center">'.$avgLabel.'</div></th>
+                    <th data-type="number"><div class="small" align="center">Rank</div></th>
+                    </tr></thead><tbody>';
+        
+        // Process contestants
+        $rankedContestants = [];
+        foreach ($contestants as $eventContestantResult) {
+            $contestantCode = htmlspecialchars($eventContestantResult['code']);
+            $seqCons = htmlspecialchars($eventContestantResult['sequence']);
+            $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
+            $contestantSequence = ($conGeneral == 1 || empty($contestantGender)) ? $seqCons : ($seqCons . ' - ' . $contestantGender);
+            
+            $totalScore = 0.0;
+            $judgeScores = [];
+            
+            foreach ($resultEventJudge as $eventJudgeResult) {
+                $event_judge_code = $eventJudgeResult['code'];
+                $eventJudgeScoreQuery = judgeEventScoreList;
+                $stmt = $db->prepare($eventJudgeScoreQuery);
+                $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
+                $stmt->execute();
+                $resultEventJudgeScore = $stmt->get_result();
+                
+                $judgeScore = 0.0;
+                if ($resultEventJudgeScore->num_rows > 0) {
+                    while ($row = $resultEventJudgeScore->fetch_assoc()) {
+                        $judgeScore += (float)$row['score'];
+                    }
+                }
+                
+                $judgeScores[$event_judge_code] = $judgeScore;
+                $totalScore += $judgeScore;
+            }
+            
+            $criteriaPercentage = $fetchResultEventCriteriaPercentage['percent'];
+            $totalPossibleScore = $criteriaPercentage * $resultEventJudge->num_rows;
+            
+            if ($conWeightedScoring == 1) {
+                $averageVal = ($totalPossibleScore > 0) ? (($totalScore / $totalPossibleScore) * 100.0) : 0.0;
+            } else {
+                $averageVal = ($resultEventJudge->num_rows > 0) ? ($totalScore / $resultEventJudge->num_rows) : 0.0;
+            }
+            $averageDisp = number_format($averageVal, 2) . (($conWeightedScoring == 1) ? ' %' : '');
+            
+            $rankedContestants[] = [
+                'contestantSequence' => $contestantSequence,
+                'judgeScores' => $judgeScores,
+                'averageVal' => $averageVal,
+                'averageDisp' => $averageDisp,
+            ];
+        }
+        
+        // Sort contestants
+        usort($rankedContestants, function($a, $b) {
+            return ($b['averageVal'] ?? 0) <=> ($a['averageVal'] ?? 0);
+        });
+        
+        // Generate table rows
+        $rank = 1;
+        $previousRank = 1;
+        $count = count($rankedContestants);
+        for ($i = 0; $i < $count; $i++) {
+            $contestant = $rankedContestants[$i];
+            
+            if ($i > 0 && round($contestant['averageVal'],2) === round($rankedContestants[$i - 1]['averageVal'],2)) {
+                $currentRank = $previousRank;
+            } else {
+                $currentRank = $rank;
+                $rank++;
+            }
+            $previousRank = $currentRank;
+            
+            $isTie = false;
+            if (($i > 0 && round($contestant['averageVal'],2) === round($rankedContestants[$i - 1]['averageVal'],2)) ||
+                ($i < $count - 1 && round($contestant['averageVal'],2) === round($rankedContestants[$i + 1]['averageVal'],2))) {
+                $isTie = true;
+            }
+            
+            $displayRank = $currentRank . ($isTie ? '.5' : '');
+            
+            $output .= '<tr><td><div class="small text-center">' . $contestant['contestantSequence'] . '</div></td>';
+            
+            foreach ($contestant['judgeScores'] as $judgeScore) {
+                $output .= '<td><div class="small text-center">' . number_format((float)$judgeScore, 2) . '</div></td>';
+            }
+            
+            $output .= '<td data-sort="' . number_format((float)$contestant['averageVal'], 2, '.', '') . '"><div class="small text-center">' . $contestant['averageDisp'] . '</div></td>
+                        <td><div class="small text-center">' . $displayRank . '</div></td></tr>';
+        }
+        
+        $output .= '</tbody></table></div>';
+        $output .= '<div class="" align="center">
+                        <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\''.$tableId.'\'], [\'selected\', \''.$categoryClass.'-hd\'])">Print Summary</button>
+                    </div>';
+        
+        return $output;
+    }
+
     // Fetch details and build HTML outside the loop
     $summary = '';
 
@@ -167,1274 +296,98 @@ if(isset($_POST['event_category'])) {
         else{
             $summary .= '<h3 class="mt-4 text-muted" align="center"></h3>';
         }
-
-
-$summary .='
-                        <div class="tab-content border border-top-0 p-3" id="genderTabsContent">
-                            <div class="tab-pane fade text-center show active" id="female" role="tabpanel" aria-labelledby="female-tab">
-';
-//================================================  table for category Female  =========================================================================================================
-                        if (!empty($contestantsByCategoryFemale)) {
-
-                            if ($conGeneral == 1) {  // Use double equal sign for comparison
-                                $summary .= '
-                                    <h6 class="fm-hd mt-5 text-muted" align="center">General Summary</h6>
-                                ';
-                            } else {
-                                $summary .= '
-                                    <h6 class="fm-hd mt-5 text-muted" align="center">Female Category Summary</h6>
-                                ';
-                            }
-                        $summary .= '
-                                            <div class="card-body table-responsive-sm">
-                                                <table class="table table-hover" id="data1">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>
-                                                                <div class="small" align="center">
-                                                                    Candidate No.
-                                                                </div>
-                                                            </th>';
-
-                                            // get judge list
-                                            $eventJudgeQuery = judgeByCategorySummaryListFemale;
-                                            $stmt = $db->prepare($eventJudgeQuery);
-                                            $stmt->execute();
-                                            $resultEventJudge = $stmt->get_result();
-
-                                            // Proceed to generate the output for whichever category returns data
-                                            if ($resultEventJudge->num_rows > 0) {
-                                                foreach ($resultEventJudge as $eventJudgeResult) {
-                                                    $judgeNameHeader = $eventJudgeResult['name'];
-                                                    $summary .= '
-                                                        <th>
-                                                            <div class="small ms-3 me-3" align="center">
-                                                                '.$judgeNameHeader.'
-                                                            </div>
-                                                        </th>';
-                                                }
-                                            }
-
-                                            $summary .= '
-                                                            <th>
-                                                                <div class="small text-success" align="center">
-                                                                    Average - '.$fetchResultEvent['event_name'].'  
-                                                                </div>
-                                                            </th>
-
-                                                            <th>
-                                                                <div class="small" align="center">
-                                                                    Rank
-                                                                </div>
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>';
-
-                                            // Initialize variables
-                                            $rankedContestants = [];
-
-                                            foreach ($contestantsByCategoryFemale as $eventContestantResult) {
-                                                $contestantCode = htmlspecialchars($eventContestantResult['code']); 
-                                                $seqCons = htmlspecialchars($eventContestantResult['sequence']);
-                                                $contestantName = htmlspecialchars($eventContestantResult['name']);
-                                                $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                                                $contestantSequence = ($contestantGender != null || $isGeneral == 1) ? $seqCons : $seqCons . ' - ' . $contestantGender;
-
-                                                // Reset total score for each contestant
-                                                $totalScore = 0;
-
-                                                // Initialize judge scores array
-                                                $judgeScores = [];
-
-                                                // Loop through each judge's score
-                                                foreach ($resultEventJudge as $eventJudgeResult) {
-                                                    $event_judge_code = $eventJudgeResult['code'];
-                                                    $eventJudgeScoreQuery = judgeEventScoreList;
-                                                    $stmt = $db->prepare($eventJudgeScoreQuery);
-                                                    $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
-                                                    $stmt->execute();
-                                                    $resultEventJudgeScore = $stmt->get_result();
-
-                                                    $judgeScore = null;
-
-                                                    if ($resultEventJudgeScore->num_rows > 0) {
-                                                        // If the contestant has a score from the judge, sum it up
-                                                        while ($row = $resultEventJudgeScore->fetch_assoc()) {
-                                                            $judgeScore += htmlspecialchars($row['score']);
-                                                        }
-                                                    } else {
-                                                        // If the contestant doesn't have a score from the judge, assign null
-                                                        $judgeScore = null;
-                                                    }
-
-                                                    // Store judge score for the contestant
-                                                    $judgeScores[$event_judge_code] = $judgeScore;
-
-                                                    // Add judge score to the total score
-                                                    $totalScore += $judgeScore;
-                                                }
-
-                                                // Calculate average score
-                                                $criteriaPercentage = $fetchResultEventCriteriaPercentage['percent'];
-                                                $totalPossibleScore = $criteriaPercentage * $resultEventJudge->num_rows;
-
-                                                if($conWeightedScoring == 1){
-                                                    $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $totalPossibleScore * 100.0), 2) : '';
-                                                }else{
-                                                    $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $resultEventJudge->num_rows), 2) : '';
-                                                }
-
-                                                
-                                                // Store contestant details, judge scores, and average score for ranking
-                                                $rankedContestants[] = [
-                                                    'contestantSequence' => $contestantSequence,
-                                                    'judgeScores' => $judgeScores,
-                                                    'averageScore' => $averageScore,
-                                                ];
-
-                                            }
-
-                                            // Sort contestants based on average score (descending order)
-                                            usort($rankedContestants, function($a, $b) {
-                                                return $b['averageScore'] <=> $a['averageScore'];
-                                            });
-
-                                            // Initialize rank variables and summary container
-                                            $rank = 1;
-                                            $summary .= ''; // if not already set
-                                            $count = count($rankedContestants);
-
-                                            for ($i = 0; $i < $count; $i++) {
-                                                $contestantFemale = $rankedContestants[$i];
-
-                                                // Determine the current candidate's base rank.
-                                                if ($i > 0 && $contestantFemale['averageScore'] === $rankedContestants[$i - 1]['averageScore']) {
-                                                    // If tied with the previous candidate, use the previous candidate's rank.
-                                                    $currentRank = $previousRank;
-                                                } else {
-                                                    // Otherwise, assign the current rank and then increment the base rank.
-                                                    $currentRank = $rank;
-                                                    $rank++;
-                                                }
-                                                
-                                                // Save current rank for next iteration.
-                                                $previousRank = $currentRank;
-                                                
-                                                // Determine if this candidate is part of a tie group.
-                                                // We check the previous or next candidate's score.
-                                                $isTie = false;
-                                                if (
-                                                    ($i > 0 && $contestantFemale['averageScore'] === $rankedContestants[$i - 1]['averageScore']) ||
-                                                    ($i < $count - 1 && $contestantFemale['averageScore'] === $rankedContestants[$i + 1]['averageScore'])
-                                                ) {
-                                                    $isTie = true;
-                                                }
-                                                
-                                                // Prepare the display rank: append '.5' if part of a tie group.
-                                                $displayRank = $currentRank . ($isTie ? '.5' : '');
-                                                
-                                                // Build the table row.
-                                                $summary .= '
-                                                    <tr>
-                                                        <td>
-                                                            <div class="small text-center">
-                                                                ' . $contestantFemale['contestantSequence'] . '
-                                                            </div>
-                                                        </td>';
-                                                
-                                                // Loop through each judge score for this candidate.
-                                                foreach ($contestantFemale['judgeScores'] as $judgeScore) {
-                                                    $summary .= '
-                                                        <td>
-                                                            <div class="small text-center">
-                                                                ' . $judgeScore . '
-                                                            </div>
-                                                        </td>';
-                                                }
-                                                
-                                                $summary .= '
-                                                        <td>
-                                                            <div class="small text-center">
-                                                                ' . $contestantFemale['averageScore'] . '
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="small text-center">
-                                                                ' . $displayRank . '
-                                                            </div>
-                                                        </td>
-                                                    </tr>';
-                                            }
-
-                                            $summary .= '
-                                                    </tbody>
-                                                </table>
-                                            </div>';
-
-
-                                    
-                                    $summary .= '
-                                        <div class="" align="center">
-                                            <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data1\'], [\'selected\', \'fm-hd\'])">Print Summary</button>
-                                        </div>';
-                                }
-$summary .='
-                            </div>
-                            <div class="tab-pane fade text-center" id="male" role="tabpanel" aria-labelledby="male-tab">
-';
-                        if (!empty($contestantsByCategoryMale)){
-                            //--------------------------------------  table for category Male  -----------------------------------------------------------------------------------------------------------------------
-
-
-                            if ($conGeneral == 1) {  // Use double equal sign for comparison
-                                $summary .= '
-                                    <h6 class="m-hd mt-5 text-muted" align="center">General Summary</h6>
-                                ';
-                            } else {
-                                $summary .= '
-                                    <h6 class="m-hd mt-4 text-muted" align="center">Male Category Summary </h6>
-                                ';
-                            }
-                                $summary .= '
-                                                
-                                                <div class="card-body table-responsive-sm">
-                                                    <table class="table table-hover" id="data2">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Candidate No.
-                                                                    </div>
-                                                                </th>';
-
-                                                // get judge list
-                                                $eventJudgeQuery = judgeByCategorySummaryListMale;
-                                                $stmt = $db->prepare($eventJudgeQuery);
-                                                $stmt->execute();
-                                                $resultEventJudge = $stmt->get_result();
-                                                
-                                                // Proceed to generate the output for whichever category returns data
-                                                if ($resultEventJudge->num_rows > 0) {
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $judgeNameHeader = $eventJudgeResult['name'];
-                                                        $summary .= '
-                                                            <th>
-                                                                <div class="small ms-3 me-3" align="center">
-                                                                    '.$judgeNameHeader.'
-                                                                </div>
-                                                            </th>';
-                                                    }
-                                                }
-
-                                                $summary .= '
-                                                                <th>
-                                                                    <div class="small text-success" align="center">
-                                                                        Average - '.$fetchResultEvent['event_name'].'  
-                                                                    </div>
-                                                                </th>
-
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Rank
-                                                                    </div>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>';
-
-                                                // Initialize variables
-                                                $rankedContestants = [];
-                                                $rank = 1;
-
-                                                foreach ($contestantsByCategoryMale as $eventContestantResult) {
-                                                    $contestantCode = htmlspecialchars($eventContestantResult['code']); 
-                                                    $seqCons = htmlspecialchars($eventContestantResult['sequence']);
-                                                    $contestantName = htmlspecialchars($eventContestantResult['name']);
-                                                    $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                                                    $contestantSequence = ($contestantGender != null || $isGeneral == 1) ? $seqCons : $seqCons . ' - ' . $contestantGender;
-
-                                                    // Reset total score for each contestant
-                                                    $totalScore = 0;
-
-                                                    // Initialize judge scores array
-                                                    $judgeScores = [];
-
-                                                    // Loop through each judge's score
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $event_judge_code = $eventJudgeResult['code'];
-                                                        $eventJudgeScoreQuery = judgeEventScoreList;
-                                                        $stmt = $db->prepare($eventJudgeScoreQuery);
-                                                        $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
-                                                        $stmt->execute();
-                                                        $resultEventJudgeScore = $stmt->get_result();
-
-                                                        $judgeScore = null;
-
-                                                        if ($resultEventJudgeScore->num_rows > 0) {
-                                                            // If the contestant has a score from the judge, sum it up
-                                                            while ($row = $resultEventJudgeScore->fetch_assoc()) {
-                                                                $judgeScore += htmlspecialchars($row['score']);
-                                                            }
-                                                        } else {
-                                                            // If the contestant doesn't have a score from the judge, assign null
-                                                            $judgeScore = null;
-                                                        }
-
-                                                        // Store judge score for the contestant
-                                                        $judgeScores[$event_judge_code] = $judgeScore;
-
-                                                        // Add judge score to the total score
-                                                        $totalScore += $judgeScore;
-                                                    }
-
-                                                    // Calculate average score
-                                                    $criteriaPercentage = $fetchResultEventCriteriaPercentage['percent'];
-                                                    $totalPossibleScore = $criteriaPercentage * $resultEventJudge->num_rows;
-                                                    
-                                                    if($conWeightedScoring == 1){
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $totalPossibleScore * 100.0), 2) : '';
-                                                    }else{
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $resultEventJudge->num_rows), 2) : '';
-                                                    }
-
-                                                    // Store contestant details, judge scores, and average score for ranking
-                                                    $rankedContestants[] = [
-                                                        'contestantSequence' => $contestantSequence,
-                                                        'judgeScores' => $judgeScores,
-                                                        'averageScore' => $averageScore,
-                                                    ];
-
-                                                }
-
-                                                // Sort contestants based on average score (descending order)
-                                                usort($rankedContestants, function($a, $b) {
-                                                    return $b['averageScore'] <=> $a['averageScore'];
-                                                });
-
-                                                // Initialize rank variables and summary container
-                                                $rank = 1;
-                                                $summary .= ''; // if not already set
-                                                $count = count($rankedContestants);
-
-                                                for ($i = 0; $i < $count; $i++) {
-                                                    $contestantMale = $rankedContestants[$i];
-
-                                                    // Determine the current candidate's base rank.
-                                                    if ($i > 0 && $contestantMale['averageScore'] === $rankedContestants[$i - 1]['averageScore']) {
-                                                        // If tied with the previous candidate, use the previous candidate's rank.
-                                                        $currentRank = $previousRank;
-                                                    } else {
-                                                        // Otherwise, assign the current rank and then increment the base rank.
-                                                        $currentRank = $rank;
-                                                        $rank++;
-                                                    }
-                                                    
-                                                    // Save current rank for next iteration.
-                                                    $previousRank = $currentRank;
-                                                    
-                                                    // Determine if this candidate is part of a tie group.
-                                                    // We check the previous or next candidate's score.
-                                                    $isTie = false;
-                                                    if (
-                                                        ($i > 0 && $contestantMale['averageScore'] === $rankedContestants[$i - 1]['averageScore']) ||
-                                                        ($i < $count - 1 && $contestantMale['averageScore'] === $rankedContestants[$i + 1]['averageScore'])
-                                                    ) {
-                                                        $isTie = true;
-                                                    }
-                                                    
-                                                    // Prepare the display rank: append '.5' if part of a tie group.
-                                                    $displayRank = $currentRank . ($isTie ? '.5' : '');
-                                                    
-                                                    // Build the table row.
-                                                    $summary .= '
-                                                        <tr>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantMale['contestantSequence'] . '
-                                                                </div>
-                                                            </td>';
-                                                    
-                                                    // Loop through each judge score for this candidate.
-                                                    foreach ($contestantMale['judgeScores'] as $judgeScore) {
-                                                        $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $judgeScore . '
-                                                                </div>
-                                                            </td>';
-                                                    }
-                                                    
-                                                    $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantMale['averageScore'] . '
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $displayRank . '
-                                                                </div>
-                                                            </td>
-                                                        </tr>';
-                                                }
-
-                                                $summary .= '
-                                                        </tbody>
-                                                    </table>
-                                                </div>';
-
-                                            $summary .= '
-                                            <div class="" align="center">
-                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data2\'], [\'selected\', \'m-hd\'])">Print Summary</button>
-                                            </div>';
-                                    }
-$summary .='
-                            </div>
-                            <div class="tab-pane fade text-center" id="both-mf" role="tabpanel" aria-labelledby="both-mf-tab">
-';
-                        if (!empty($contestantsByCategoryBothMaleFemale)){
-                            //--------------------------------------  table for category Male/Female  -----------------------------------------------------------------------------------------------------------------------
-
-
-                            if ($conGeneral == 1) {  // Use double equal sign for comparison
-                                $summary .= '
-                                    <h6 class="mf-hd mt-5 text-muted" align="center">General Summary</h6>
-                                ';
-                            } else {
-                                $summary .= '
-                                    <h6 class="mf-hd mt-4 text-muted" align="center">Male/Female Category Summary </h6>
-                                ';
-                            }
-                                $summary .= '
-                                                
-                                                <div class="card-body table-responsive-sm">
-                                                    <table class="table table-hover" id="data5">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Candidate No.
-                                                                    </div>
-                                                                </th>';
-
-                                                // get judge list
-                                                $eventJudgeQuery = judgeByCategorySummaryListMaleFemale;
-                                                $stmt = $db->prepare($eventJudgeQuery);
-                                                $stmt->execute();
-                                                $resultEventJudge = $stmt->get_result();
-                                                
-                                                // Proceed to generate the output for whichever category returns data
-                                                if ($resultEventJudge->num_rows > 0) {
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $judgeNameHeader = $eventJudgeResult['name'];
-                                                        $summary .= '
-                                                            <th>
-                                                                <div class="small ms-3 me-3" align="center">
-                                                                    '.$judgeNameHeader.'
-                                                                </div>
-                                                            </th>';
-                                                    }
-                                                }
-
-                                                $summary .= '
-                                                                <th>
-                                                                    <div class="small text-success" align="center">
-                                                                        Average - '.$fetchResultEvent['event_name'].'  
-                                                                    </div>
-                                                                </th>
-
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Rank
-                                                                    </div>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>';
-
-                                                // Initialize variables
-                                                $rankedContestants = [];
-                                                $rank = 1;
-
-                                                foreach ($contestantsByCategoryBothMaleFemale as $eventContestantResult) {
-                                                    $contestantCode = htmlspecialchars($eventContestantResult['code']); 
-                                                    $seqCons = htmlspecialchars($eventContestantResult['sequence']);
-                                                    $contestantName = htmlspecialchars($eventContestantResult['name']);
-                                                    $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                                                    $contestantSequence = ($contestantGender != null || $isGeneral == 1) ? $seqCons : $seqCons . ' - ' . $contestantGender;
-
-                                                    // Reset total score for each contestant
-                                                    $totalScore = 0;
-
-                                                    // Initialize judge scores array
-                                                    $judgeScores = [];
-
-                                                    // Loop through each judge's score
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $event_judge_code = $eventJudgeResult['code'];
-                                                        $eventJudgeScoreQuery = judgeEventScoreList;
-                                                        $stmt = $db->prepare($eventJudgeScoreQuery);
-                                                        $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
-                                                        $stmt->execute();
-                                                        $resultEventJudgeScore = $stmt->get_result();
-
-                                                        $judgeScore = null;
-
-                                                        if ($resultEventJudgeScore->num_rows > 0) {
-                                                            // If the contestant has a score from the judge, sum it up
-                                                            while ($row = $resultEventJudgeScore->fetch_assoc()) {
-                                                                $judgeScore += htmlspecialchars($row['score']);
-                                                            }
-                                                        } else {
-                                                            // If the contestant doesn't have a score from the judge, assign null
-                                                            $judgeScore = null;
-                                                        }
-
-                                                        // Store judge score for the contestant
-                                                        $judgeScores[$event_judge_code] = $judgeScore;
-
-                                                        // Add judge score to the total score
-                                                        $totalScore += $judgeScore;
-                                                    }
-
-                                                    // Calculate average score
-                                                    $criteriaPercentage = $fetchResultEventCriteriaPercentage['percent'];
-                                                    $totalPossibleScore = $criteriaPercentage * $resultEventJudge->num_rows;
-                                                    
-                                                    if($conWeightedScoring == 1){
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $totalPossibleScore * 100.0), 2) : '';
-                                                    }else{
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $resultEventJudge->num_rows), 2) : '';
-                                                    }
-
-                                                    // Store contestant details, judge scores, and average score for ranking
-                                                    $rankedContestants[] = [
-                                                        'contestantSequence' => $contestantSequence,
-                                                        'judgeScores' => $judgeScores,
-                                                        'averageScore' => $averageScore,
-                                                    ];
-
-                                                }
-
-                                                // Sort contestants based on average score (descending order)
-                                                usort($rankedContestants, function($a, $b) {
-                                                    return $b['averageScore'] <=> $a['averageScore'];
-                                                });
-
-                                                // Initialize rank variables and summary container
-                                                $rank = 1;
-                                                $summary .= ''; // if not already set
-                                                $count = count($rankedContestants);
-
-                                                for ($i = 0; $i < $count; $i++) {
-                                                    $contestantMaleFemale = $rankedContestants[$i];
-
-                                                    // Determine the current candidate's base rank.
-                                                    if ($i > 0 && $contestantMaleFemale['averageScore'] === $rankedContestants[$i - 1]['averageScore']) {
-                                                        // If tied with the previous candidate, use the previous candidate's rank.
-                                                        $currentRank = $previousRank;
-                                                    } else {
-                                                        // Otherwise, assign the current rank and then increment the base rank.
-                                                        $currentRank = $rank;
-                                                        $rank++;
-                                                    }
-                                                    
-                                                    // Save current rank for next iteration.
-                                                    $previousRank = $currentRank;
-                                                    
-                                                    // Determine if this candidate is part of a tie group.
-                                                    // We check the previous or next candidate's score.
-                                                    $isTie = false;
-                                                    if (
-                                                        ($i > 0 && $contestantMaleFemale['averageScore'] === $rankedContestants[$i - 1]['averageScore']) ||
-                                                        ($i < $count - 1 && $contestantMaleFemale['averageScore'] === $rankedContestants[$i + 1]['averageScore'])
-                                                    ) {
-                                                        $isTie = true;
-                                                    }
-                                                    
-                                                    // Prepare the display rank: append '.5' if part of a tie group.
-                                                    $displayRank = $currentRank . ($isTie ? '.5' : '');
-                                                    
-                                                    // Build the table row.
-                                                    $summary .= '
-                                                        <tr>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantMaleFemale['contestantSequence'] . '
-                                                                </div>
-                                                            </td>';
-                                                    
-                                                    // Loop through each judge score for this candidate.
-                                                    foreach ($contestantMaleFemale['judgeScores'] as $judgeScore) {
-                                                        $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $judgeScore . '
-                                                                </div>
-                                                            </td>';
-                                                    }
-                                                    
-                                                    $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantMaleFemale['averageScore'] . '
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $displayRank . '
-                                                                </div>
-                                                            </td>
-                                                        </tr>';
-                                                }
-
-                                                $summary .= '
-                                                        </tbody>
-                                                    </table>
-                                                </div>';
-
-                                            $summary .= '
-                                            <div class="" align="center">
-                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data5\'], [\'selected\', \'m-hd\'])">Print Summary</button>
-                                            </div>';
-                                    }
-$summary .='
-                            </div>
-                            <div class="tab-pane fade text-center" id="gay" role="tabpanel" aria-labelledby="gay-tab">
-';
-                        if (!empty($contestantsByCategoryLesbian)){
-                            //-----------------------------------  table for category Lesbian  --------------------------------------------------------------------------------------------------------------------------
-
-                            if ($conGeneral == 1) {  // Use double equal sign for comparison
-                                $summary .= '
-                                    <h6 class="ls-hd mt-5 text-muted" align="center">General Summary</h6>
-                                ';
-                            } else {
-                                $summary .= '
-                                    <h6 class="ls-hd mt-4 text-muted" align="center">Lesbian Category Summary </h6>
-                                ';
-                            }
-
-                                $summary .= '
-                                                
-                                                <div class="card-body table-responsive-sm">
-                                                    <table class="table table-hover" id="data3">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Candidate No.
-                                                                    </div>
-                                                                </th>';
-
-                                                // get judge list
-                                                $eventJudgeQuery = judgeByCategorySummaryListLesbian;
-                                                $stmt = $db->prepare($eventJudgeQuery);
-                                                $stmt->execute();
-                                                $resultEventJudge = $stmt->get_result();
-                                                
-                                                // Proceed to generate the output for whichever category returns data
-                                                if ($resultEventJudge->num_rows > 0) {
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $judgeNameHeader = $eventJudgeResult['name'];
-                                                        $summary .= '
-                                                            <th>
-                                                                <div class="small ms-3 me-3" align="center">
-                                                                    '.$judgeNameHeader.'
-                                                                </div>
-                                                            </th>';
-                                                    }
-                                                }
-
-                                                $summary .= '
-                                                                <th>
-                                                                    <div class="small text-success" align="center">
-                                                                        Average - '.$fetchResultEvent['event_name'].'
-                                                                    </div>
-                                                                </th>
-
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Rank
-                                                                    </div>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>';
-
-                                                // Initialize variables
-                                                $rankedContestants = [];
-                                                $rank = 1;
-
-                                                foreach ($contestantsByCategoryLesbian as $eventContestantResult) {
-                                                    $contestantCode = htmlspecialchars($eventContestantResult['code']); 
-                                                    $seqCons = htmlspecialchars($eventContestantResult['sequence']);
-                                                    $contestantName = htmlspecialchars($eventContestantResult['name']);
-                                                    $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                                                    $contestantSequence = ($contestantGender != null || $isGeneral == 1) ? $seqCons : $seqCons . ' - ' . $contestantGender;
-
-                                                    // Reset total score for each contestant
-                                                    $totalScore = 0;
-
-                                                    // Initialize judge scores array
-                                                    $judgeScores = [];
-
-                                                    // Loop through each judge's score
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $event_judge_code = $eventJudgeResult['code'];
-                                                        $eventJudgeScoreQuery = judgeEventScoreList;
-                                                        $stmt = $db->prepare($eventJudgeScoreQuery);
-                                                        $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
-                                                        $stmt->execute();
-                                                        $resultEventJudgeScore = $stmt->get_result();
-
-                                                        $judgeScore = null;
-
-                                                        if ($resultEventJudgeScore->num_rows > 0) {
-                                                            // If the contestant has a score from the judge, sum it up
-                                                            while ($row = $resultEventJudgeScore->fetch_assoc()) {
-                                                                $judgeScore += htmlspecialchars($row['score']);
-                                                            }
-                                                        } else {
-                                                            // If the contestant doesn't have a score from the judge, assign null
-                                                            $judgeScore = null;
-                                                        }
-
-                                                        // Store judge score for the contestant
-                                                        $judgeScores[$event_judge_code] = $judgeScore;
-
-                                                        // Add judge score to the total score
-                                                        $totalScore += $judgeScore;
-                                                    }
-
-                                                    // Calculate average score
-                                                    $criteriaPercentage = $fetchResultEventCriteriaPercentage['percent'];
-                                                    $totalPossibleScore = $criteriaPercentage * $resultEventJudge->num_rows;
-                                                    if($conWeightedScoring == 1){
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $totalPossibleScore * 100.0), 2) : '';
-                                                    }else{
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $resultEventJudge->num_rows), 2) : '';
-                                                    }
-
-                                                    // Store contestant details, judge scores, and average score for ranking
-                                                    $rankedContestants[] = [
-                                                        'contestantSequence' => $contestantSequence,
-                                                        'judgeScores' => $judgeScores,
-                                                        'averageScore' => $averageScore,
-                                                    ];
-
-                                                }
-
-                                                // Sort contestants based on average score (descending order)
-                                                usort($rankedContestants, function($a, $b) {
-                                                    return $b['averageScore'] <=> $a['averageScore'];
-                                                });
-
-                                                // Initialize rank variables and summary container
-                                                $rank = 1;
-                                                $summary .= ''; // if not already set
-                                                $count = count($rankedContestants);
-
-                                                for ($i = 0; $i < $count; $i++) {
-                                                    $contestantLesbian = $rankedContestants[$i];
-
-                                                    // Determine the current candidate's base rank.
-                                                    if ($i > 0 && $contestantLesbian['averageScore'] === $rankedContestants[$i - 1]['averageScore']) {
-                                                        // If tied with the previous candidate, use the previous candidate's rank.
-                                                        $currentRank = $previousRank;
-                                                    } else {
-                                                        // Otherwise, assign the current rank and then increment the base rank.
-                                                        $currentRank = $rank;
-                                                        $rank++;
-                                                    }
-                                                    
-                                                    // Save current rank for next iteration.
-                                                    $previousRank = $currentRank;
-                                                    
-                                                    // Determine if this candidate is part of a tie group.
-                                                    // We check the previous or next candidate's score.
-                                                    $isTie = false;
-                                                    if (
-                                                        ($i > 0 && $contestantLesbian['averageScore'] === $rankedContestants[$i - 1]['averageScore']) ||
-                                                        ($i < $count - 1 && $contestantLesbian['averageScore'] === $rankedContestants[$i + 1]['averageScore'])
-                                                    ) {
-                                                        $isTie = true;
-                                                    }
-                                                    
-                                                    // Prepare the display rank: append '.5' if part of a tie group.
-                                                    $displayRank = $currentRank . ($isTie ? '.5' : '');
-                                                    
-                                                    // Build the table row.
-                                                    $summary .= '
-                                                        <tr>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantLesbian['contestantSequence'] . '
-                                                                </div>
-                                                            </td>';
-                                                    
-                                                    // Loop through each judge score for this candidate.
-                                                    foreach ($contestantLesbian['judgeScores'] as $judgeScore) {
-                                                        $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $judgeScore . '
-                                                                </div>
-                                                            </td>';
-                                                    }
-                                                    
-                                                    $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantLesbian['averageScore'] . '
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $displayRank . '
-                                                                </div>
-                                                            </td>
-                                                        </tr>';
-                                                }
-
-                                                $summary .= '
-                                                        </tbody>
-                                                    </table>
-                                                </div>';
-
-                                            $summary .= '
-                                            <div class="" align="center">
-                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data3\'], [\'selected\', \'ls-hd\'])">Print Summary</button>
-                                            </div>';
-                                    }
-$summary .='
-                            </div>
-                            <div class="tab-pane fade text-center" id="lesbian" role="tabpanel" aria-labelledby="lesbian-tab">
-';
-                        if (!empty($contestantsByCategoryGay)){
-                            //=============================================== LGBTQ Gay table =================================================================================================
-                                    
-                            //table for category gay
-
-                            if ($conGeneral == 1) {  // Use double equal sign for comparison
-                                $summary .= '
-                                    <h6 class="gy-hd mt-5 text-muted" align="center">General Summary</h6>
-                                ';
-                            } else {
-                                $summary .= '
-                                    <h6 class="gy-hd mt-4 text-muted" align="center">Gay Category Summary </h6>
-                                ';
-                            }
-
-                                $summary .= '
-                                                
-                                                <div class="card-body table-responsive-sm">
-                                                    <table class="table table-hover" id="data4">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Candidate No.
-                                                                    </div>
-                                                                </th>';
-
-                                                // get judge list
-                                                $eventJudgeQuery = judgeByCategorySummaryListGay;
-                                                $stmt = $db->prepare($eventJudgeQuery);
-                                                $stmt->execute();
-                                                $resultEventJudge = $stmt->get_result();
-                                                
-                                                // Proceed to generate the output for whichever category returns data
-                                                if ($resultEventJudge->num_rows > 0) {
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $judgeNameHeader = $eventJudgeResult['name'];
-                                                        $summary .= '
-                                                            <th>
-                                                                <div class="small ms-3 me-3" align="center">
-                                                                    '.$judgeNameHeader.'
-                                                                </div>
-                                                            </th>';
-                                                    }
-                                                }
-
-                                                $summary .= '
-                                                                <th>
-                                                                    <div class="small text-success" align="center">
-                                                                        Average - '.$fetchResultEvent['event_name'].'
-                                                                    </div>
-                                                                </th>
-
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Rank
-                                                                    </div>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>';
-
-                                                // Initialize variables
-                                                $rankedContestants = [];
-                                                $rank = 1;
-
-                                                foreach ($contestantsByCategoryGay as $eventContestantResult) {
-                                                    $contestantCode = htmlspecialchars($eventContestantResult['code']); 
-                                                    $seqCons = htmlspecialchars($eventContestantResult['sequence']);
-                                                    $contestantName = htmlspecialchars($eventContestantResult['name']);
-                                                    $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                                                    $contestantSequence = ($contestantGender != null || $isGeneral == 1) ? $seqCons : $seqCons . ' - ' . $contestantGender;
-
-                                                    // Reset total score for each contestant
-                                                    $totalScore = 0;
-
-                                                    // Initialize judge scores array
-                                                    $judgeScores = [];
-
-                                                    // Loop through each judge's score
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $event_judge_code = $eventJudgeResult['code'];
-                                                        $eventJudgeScoreQuery = judgeEventScoreList;
-                                                        $stmt = $db->prepare($eventJudgeScoreQuery);
-                                                        $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
-                                                        $stmt->execute();
-                                                        $resultEventJudgeScore = $stmt->get_result();
-
-                                                        $judgeScore = null;
-
-                                                        if ($resultEventJudgeScore->num_rows > 0) {
-                                                            // If the contestant has a score from the judge, sum it up
-                                                            while ($row = $resultEventJudgeScore->fetch_assoc()) {
-                                                                $judgeScore += htmlspecialchars($row['score']);
-                                                            }
-                                                        } else {
-                                                            // If the contestant doesn't have a score from the judge, assign null
-                                                            $judgeScore = null;
-                                                        }
-
-                                                        // Store judge score for the contestant
-                                                        $judgeScores[$event_judge_code] = $judgeScore;
-
-                                                        // Add judge score to the total score
-                                                        $totalScore += $judgeScore;
-                                                    }
-
-                                                    // Calculate average score
-                                                    $criteriaPercentage = $fetchResultEventCriteriaPercentage['percent'];
-                                                    $totalPossibleScore = $criteriaPercentage * $resultEventJudge->num_rows;
-                                                    if($conWeightedScoring == 1){
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $totalPossibleScore * 100.0), 2) : '';
-                                                    }else{
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $resultEventJudge->num_rows), 2) : '';
-                                                    }
-
-                                                    // Store contestant details, judge scores, and average score for ranking
-                                                    $rankedContestants[] = [
-                                                        'contestantSequence' => $contestantSequence,
-                                                        'judgeScores' => $judgeScores,
-                                                        'averageScore' => $averageScore,
-                                                    ];
-
-                                                }
-
-                                                // Sort contestants based on average score (descending order)
-                                                usort($rankedContestants, function($a, $b) {
-                                                    return $b['averageScore'] <=> $a['averageScore'];
-                                                });
-
-                                                // Initialize rank variables and summary container
-                                                $rank = 1;
-                                                $summary .= ''; // if not already set
-                                                $count = count($rankedContestants);
-
-                                                for ($i = 0; $i < $count; $i++) {
-                                                    $contestantGay = $rankedContestants[$i];
-
-                                                    // Determine the current candidate's base rank.
-                                                    if ($i > 0 && $contestantGay['averageScore'] === $rankedContestants[$i - 1]['averageScore']) {
-                                                        // If tied with the previous candidate, use the previous candidate's rank.
-                                                        $currentRank = $previousRank;
-                                                    } else {
-                                                        // Otherwise, assign the current rank and then increment the base rank.
-                                                        $currentRank = $rank;
-                                                        $rank++;
-                                                    }
-                                                    
-                                                    // Save current rank for next iteration.
-                                                    $previousRank = $currentRank;
-                                                    
-                                                    // Determine if this candidate is part of a tie group.
-                                                    // We check the previous or next candidate's score.
-                                                    $isTie = false;
-                                                    if (
-                                                        ($i > 0 && $contestantGay['averageScore'] === $rankedContestants[$i - 1]['averageScore']) ||
-                                                        ($i < $count - 1 && $contestantGay['averageScore'] === $rankedContestants[$i + 1]['averageScore'])
-                                                    ) {
-                                                        $isTie = true;
-                                                    }
-                                                    
-                                                    // Prepare the display rank: append '.5' if part of a tie group.
-                                                    $displayRank = $currentRank . ($isTie ? '.5' : '');
-                                                    
-                                                    // Build the table row.
-                                                    $summary .= '
-                                                        <tr>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantGay['contestantSequence'] . '
-                                                                </div>
-                                                            </td>';
-                                                    
-                                                    // Loop through each judge score for this candidate.
-                                                    foreach ($contestantGay['judgeScores'] as $judgeScore) {
-                                                        $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $judgeScore . '
-                                                                </div>
-                                                            </td>';
-                                                    }
-                                                    
-                                                    $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantGay['averageScore'] . '
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $displayRank . '
-                                                                </div>
-                                                            </td>
-                                                        </tr>';
-                                                }
-
-                                                $summary .= '
-                                                        </tbody>
-                                                    </table>
-                                                </div>';
-
-                                            $summary .= '
-                                            <div class="" align="center">
-                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data4\'], [\'selected\', \'gy-hd\'])">Print Summary</button>
-                                            </div>';
-                                    }
-$summary .='
-                            </div>
-                            <div class="tab-pane fade text-center" id="both-gl" role="tabpanel" aria-labelledby="both-gl-tab">
-';
-                        if (!empty($contestantsByCategoryBothGayLesbian)){
-                            //=============================================== LGBTQ Gay table =================================================================================================
-                                    
-                            //table for category gay
-
-                            if ($conGeneral == 1) {  // Use double equal sign for comparison
-                                $summary .= '
-                                    <h6 class="gyls-hd mt-5 text-muted" align="center">General Summary</h6>
-                                ';
-                            } else {
-                                $summary .= '
-                                    <h6 class="gyls-hd mt-4 text-muted" align="center">Gay/Lesbian Category Summary </h6>
-                                ';
-                            }
-
-                                $summary .= '
-                                                
-                                                <div class="card-body table-responsive-sm">
-                                                    <table class="table table-hover" id="data6">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Candidate No.
-                                                                    </div>
-                                                                </th>';
-
-                                                // get judge list
-                                                $eventJudgeQuery = judgeByCategorySummaryListGayLesbian;
-                                                $stmt = $db->prepare($eventJudgeQuery);
-                                                $stmt->execute();
-                                                $resultEventJudge = $stmt->get_result();
-                                                
-                                                // Proceed to generate the output for whichever category returns data
-                                                if ($resultEventJudge->num_rows > 0) {
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $judgeNameHeader = $eventJudgeResult['name'];
-                                                        $summary .= '
-                                                            <th>
-                                                                <div class="small ms-3 me-3" align="center">
-                                                                    '.$judgeNameHeader.'
-                                                                </div>
-                                                            </th>';
-                                                    }
-                                                }
-
-                                                $summary .= '
-                                                                <th>
-                                                                    <div class="small text-success" align="center">
-                                                                        Average - '.$fetchResultEvent['event_name'].'
-                                                                    </div>
-                                                                </th>
-
-                                                                <th>
-                                                                    <div class="small" align="center">
-                                                                        Rank
-                                                                    </div>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>';
-
-                                                // Initialize variables
-                                                $rankedContestants = [];
-                                                $rank = 1;
-
-                                                foreach ($contestantsByCategoryBothGayLesbian as $eventContestantResult) {
-                                                    $contestantCode = htmlspecialchars($eventContestantResult['code']); 
-                                                    $seqCons = htmlspecialchars($eventContestantResult['sequence']);
-                                                    $contestantName = htmlspecialchars($eventContestantResult['name']);
-                                                    $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                                                    $contestantSequence = ($contestantGender != null || $isGeneral == 1) ? $seqCons : $seqCons . ' - ' . $contestantGender;
-
-                                                    // Reset total score for each contestant
-                                                    $totalScore = 0;
-
-                                                    // Initialize judge scores array
-                                                    $judgeScores = [];
-
-                                                    // Loop through each judge's score
-                                                    foreach ($resultEventJudge as $eventJudgeResult) {
-                                                        $event_judge_code = $eventJudgeResult['code'];
-                                                        $eventJudgeScoreQuery = judgeEventScoreList;
-                                                        $stmt = $db->prepare($eventJudgeScoreQuery);
-                                                        $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
-                                                        $stmt->execute();
-                                                        $resultEventJudgeScore = $stmt->get_result();
-
-                                                        $judgeScore = null;
-
-                                                        if ($resultEventJudgeScore->num_rows > 0) {
-                                                            // If the contestant has a score from the judge, sum it up
-                                                            while ($row = $resultEventJudgeScore->fetch_assoc()) {
-                                                                $judgeScore += htmlspecialchars($row['score']);
-                                                            }
-                                                        } else {
-                                                            // If the contestant doesn't have a score from the judge, assign null
-                                                            $judgeScore = null;
-                                                        }
-
-                                                        // Store judge score for the contestant
-                                                        $judgeScores[$event_judge_code] = $judgeScore;
-
-                                                        // Add judge score to the total score
-                                                        $totalScore += $judgeScore;
-                                                    }
-
-                                                    // Calculate average score
-                                                    $criteriaPercentage = $fetchResultEventCriteriaPercentage['percent'];
-                                                    $totalPossibleScore = $criteriaPercentage * $resultEventJudge->num_rows;
-                                                    if($conWeightedScoring == 1){
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $totalPossibleScore * 100.0), 2) : '';
-                                                    }else{
-                                                        $averageScore = ($totalPossibleScore != null) ? number_format(($totalScore / $resultEventJudge->num_rows), 2) : '';
-                                                    }
-
-                                                    // Store contestant details, judge scores, and average score for ranking
-                                                    $rankedContestants[] = [
-                                                        'contestantSequence' => $contestantSequence,
-                                                        'judgeScores' => $judgeScores,
-                                                        'averageScore' => $averageScore,
-                                                    ];
-
-                                                }
-
-                                                // Sort contestants based on average score (descending order)
-                                                usort($rankedContestants, function($a, $b) {
-                                                    return $b['averageScore'] <=> $a['averageScore'];
-                                                });
-
-                                                // Initialize rank variables and summary container
-                                                $rank = 1;
-                                                $summary .= ''; // if not already set
-                                                $count = count($rankedContestants);
-
-                                                for ($i = 0; $i < $count; $i++) {
-                                                    $contestantGayLesbian = $rankedContestants[$i];
-
-                                                    // Determine the current candidate's base rank.
-                                                    if ($i > 0 && $contestantGayLesbian['averageScore'] === $rankedContestants[$i - 1]['averageScore']) {
-                                                        // If tied with the previous candidate, use the previous candidate's rank.
-                                                        $currentRank = $previousRank;
-                                                    } else {
-                                                        // Otherwise, assign the current rank and then increment the base rank.
-                                                        $currentRank = $rank;
-                                                        $rank++;
-                                                    }
-                                                    
-                                                    // Save current rank for next iteration.
-                                                    $previousRank = $currentRank;
-                                                    
-                                                    // Determine if this candidate is part of a tie group.
-                                                    // We check the previous or next candidate's score.
-                                                    $isTie = false;
-                                                    if (
-                                                        ($i > 0 && $contestantGayLesbian['averageScore'] === $rankedContestants[$i - 1]['averageScore']) ||
-                                                        ($i < $count - 1 && $contestantGayLesbian['averageScore'] === $rankedContestants[$i + 1]['averageScore'])
-                                                    ) {
-                                                        $isTie = true;
-                                                    }
-                                                    
-                                                    // Prepare the display rank: append '.5' if part of a tie group.
-                                                    $displayRank = $currentRank . ($isTie ? '.5' : '');
-                                                    
-                                                    // Build the table row.
-                                                    $summary .= '
-                                                        <tr>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantGayLesbian['contestantSequence'] . '
-                                                                </div>
-                                                            </td>';
-                                                    
-                                                    // Loop through each judge score for this candidate.
-                                                    foreach ($contestantGayLesbian['judgeScores'] as $judgeScore) {
-                                                        $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $judgeScore . '
-                                                                </div>
-                                                            </td>';
-                                                    }
-                                                    
-                                                    $summary .= '
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $contestantGayLesbian['averageScore'] . '
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <div class="small text-center">
-                                                                    ' . $displayRank . '
-                                                                </div>
-                                                            </td>
-                                                        </tr>';
-                                                }
-
-                                                $summary .= '
-                                                        </tbody>
-                                                    </table>
-                                                </div>';
-
-                                            $summary .= '
-                                            <div class="" align="center">
-                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data6\'], [\'selected\', \'gyls-hd\'])">Print Summary</button>
-                                            </div>';
-                                    }
-$summary .='
-                            </div>
-                        </div>
-';
-
+        
+        // Add navigation tabs
+    $summary .= '<ul class="nav nav-tabs mt-4 justify-content-center" id="categoryTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">All Categories</button>
+                        </li>';
+        
+        if (!empty($contestantsByCategoryFemale)) {
+            $summary .= '<li class="nav-item" role="presentation">
+                            <button class="nav-link" id="female-tab" data-bs-toggle="tab" data-bs-target="#female" type="button" role="tab">Female</button>
+                        </li>';
+        }
+        if (!empty($contestantsByCategoryMale)) {
+            $summary .= '<li class="nav-item" role="presentation">
+                            <button class="nav-link" id="male-tab" data-bs-toggle="tab" data-bs-target="#male" type="button" role="tab">Male</button>
+                        </li>';
+        }
+        if (!empty($contestantsByCategoryLesbian)) {
+            $summary .= '<li class="nav-item" role="presentation">
+                            <button class="nav-link" id="lesbian-tab" data-bs-toggle="tab" data-bs-target="#lesbian" type="button" role="tab">Lesbian</button>
+                        </li>';
+        }
+        if (!empty($contestantsByCategoryGay)) {
+            $summary .= '<li class="nav-item" role="presentation">
+                            <button class="nav-link" id="gay-tab" data-bs-toggle="tab" data-bs-target="#gay" type="button" role="tab">Gay</button>
+                        </li>';
+        }
+        if (!empty($contestantsByCategoryBothMF)) {
+            $summary .= '<li class="nav-item" role="presentation">
+                            <button class="nav-link" id="bothmf-tab" data-bs-toggle="tab" data-bs-target="#bothmf" type="button" role="tab">Both M/F</button>
+                        </li>';
+        }
+        if (!empty($contestantsByCategoryBothLGBTQ)) {
+            $summary .= '<li class="nav-item" role="presentation">
+                            <button class="nav-link" id="bothlgbtq-tab" data-bs-toggle="tab" data-bs-target="#bothlgbtq" type="button" role="tab">Both LGBTQ</button>
+                        </li>';
+        }
+        
+        $summary .= '</ul>';
+        
+        // Tab content
+        $summary .= '<div class="tab-content" id="categoryTabContent">
+                        <div class="tab-pane fade show active" id="all" role="tabpanel">';
+
+        // Generate all category tables for "All Categories" tab
+        $summary .= generateCategoryTable($contestantsByCategoryFemale, 'Female', 'fm', 'data1', judgeByCategorySummaryListFemale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+        $summary .= generateCategoryTable($contestantsByCategoryMale, 'Male', 'm', 'data2', judgeByCategorySummaryListMale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+        $summary .= generateCategoryTable($contestantsByCategoryLesbian, 'Lesbian', 'ls', 'data3', judgeByCategorySummaryListLesbian, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+        $summary .= generateCategoryTable($contestantsByCategoryGay, 'Gay', 'gy', 'data4', judgeByCategorySummaryListGay, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+        $summary .= generateCategoryTable($contestantsByCategoryBothMF, 'Both Male and Female', 'bmf', 'data5', judgeByCategorySummaryListBothMF, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+        $summary .= generateCategoryTable($contestantsByCategoryBothLGBTQ, 'Both LGBTQ', 'blgbtq', 'data6', judgeByCategorySummaryListBothLGBTQ, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+        
+        $summary .= '</div>'; // Close "All Categories" tab
+        
+        // Individual category tabs
+        if (!empty($contestantsByCategoryFemale)) {
+            $summary .= '<div class="tab-pane fade" id="female" role="tabpanel">';
+            $summary .= generateCategoryTable($contestantsByCategoryFemale, 'Female', 'fm', 'data1-single', judgeByCategorySummaryListFemale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= '</div>';
+        }
+        
+        if (!empty($contestantsByCategoryMale)) {
+            $summary .= '<div class="tab-pane fade" id="male" role="tabpanel">';
+            $summary .= generateCategoryTable($contestantsByCategoryMale, 'Male', 'm', 'data2-single', judgeByCategorySummaryListMale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= '</div>';
+        }
+        
+        if (!empty($contestantsByCategoryLesbian)) {
+            $summary .= '<div class="tab-pane fade" id="lesbian" role="tabpanel">';
+            $summary .= generateCategoryTable($contestantsByCategoryLesbian, 'Lesbian', 'ls', 'data3-single', judgeByCategorySummaryListLesbian, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= '</div>';
+        }
+        
+        if (!empty($contestantsByCategoryGay)) {
+            $summary .= '<div class="tab-pane fade" id="gay" role="tabpanel">';
+            $summary .= generateCategoryTable($contestantsByCategoryGay, 'Gay', 'gy', 'data4-single', judgeByCategorySummaryListGay, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= '</div>';
+        }
+        
+        if (!empty($contestantsByCategoryBothMF)) {
+            $summary .= '<div class="tab-pane fade" id="bothmf" role="tabpanel">';
+            $summary .= generateCategoryTable($contestantsByCategoryBothMF, 'Both Male and Female', 'bmf', 'data5-single', judgeByCategorySummaryListBothMF, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= '</div>';
+        }
+        
+        if (!empty($contestantsByCategoryBothLGBTQ)) {
+            $summary .= '<div class="tab-pane fade" id="bothlgbtq" role="tabpanel">';
+            $summary .= generateCategoryTable($contestantsByCategoryBothLGBTQ, 'Both LGBTQ', 'blgbtq', 'data6-single', judgeByCategorySummaryListBothLGBTQ, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= '</div>';
+        }
+        
+        $summary .= '</div>'; // Close tab-content
     } else {
         $summary .= '
                 <div class="mt-5" align="center">

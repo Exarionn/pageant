@@ -174,7 +174,7 @@
                                             <div class="card-body table-responsive-sm">
                                                 <table class="table table-hover" id="data">
                                                 <?php  
-                                                $sqlLogs = "SELECT code, username, password, name, category, is_both from user Where types = 'isAdmin' order by code asc";
+                                                $sqlLogs = "SELECT code, username, password, name, category from user Where types = 'isAdmin' order by code asc";
 
                                                         $resultLogs = mysqli_query($db,$sqlLogs);
                                                         if(mysqli_num_rows($resultLogs) > 0){

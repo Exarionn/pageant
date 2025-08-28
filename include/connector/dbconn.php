@@ -12,10 +12,10 @@ $db = mysqli_connect($db_host, $db_user, $db_password, $db_name);
 
 // check connection
 if (!$db) {
-    die("Connection failed: " . mysqli_connect_error());
     $_SESSION['status'] = "Error Database Handshake!";
     $_SESSION['status_code'] = "Error";
     header('location: ../500.php');
+    die("Connection failed: " . mysqli_connect_error());
 }
 
 // Set the character set to UTF-8

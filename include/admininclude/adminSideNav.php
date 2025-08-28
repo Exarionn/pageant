@@ -34,7 +34,7 @@
                                 }
                             ?>
 
-                            <div class="sb-sidenav-menu-heading">Special Event Panel</div>
+                            
                             <?php
                                 $eventCategorySpecialQuery = eventListSpecial;
                                 $resultEventCategorySpecial = mysqli_query($db, $eventCategorySpecialQuery);
@@ -43,12 +43,13 @@
                                     foreach ($resultEventCategorySpecial as $eventCategoryResultSpecial) {
                                         $eventCodeSpecial = htmlspecialchars($eventCategoryResultSpecial['code']);
                                         $event_nameSpecial = htmlspecialchars($eventCategoryResultSpecial['event_name']);
-                                        ?>  
-                                        <a class="event_categorySpecial nav-link" href="adminHome.php#"
-                                                data-code='<?= $eventCodeSpecial?>'>
-                                            <?= $event_nameSpecial ?>
-                                        </a>
-                                        <?php
+                            ?> 
+                            <div class="sb-sidenav-menu-heading">Special Event Panel</div>
+                            <a class="event_categorySpecial nav-link" href="adminHome.php#"
+                                    data-code='<?= $eventCodeSpecial?>'>
+                                <?= $event_nameSpecial ?>
+                            </a>
+                            <?php
                                     }
                                 }
                             ?>

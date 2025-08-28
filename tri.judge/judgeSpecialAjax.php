@@ -130,11 +130,6 @@ if(isset($_POST['event_category'], $_POST['event_judge'], $_POST['category_judge
 //start
 if($resultEventCategoryByjudge->num_rows > 0) {
     $judgeCategory = $fetchResultEventCategoryByJudge['category'];
-    $judgeCategoryIsBoth = $fetchResultEventCategoryByJudge['is_both'];
-    
-    
-    // echo $judgeCategoryIsBoth;
-    // echo $judgeCategory;
 
     $eventContestantCategoryByJudgeQuery = contestantCategoryByJudge;
     $stmt = $db->prepare($eventContestantCategoryByJudgeQuery);
@@ -142,93 +137,27 @@ if($resultEventCategoryByjudge->num_rows > 0) {
     $stmt->execute();
     $resultEventContestantCategoryByJudge = $stmt->get_result();
 
-
     if($resultEventContestantCategoryByJudge->num_rows > 0) {
+        foreach ($resultEventContestantCategoryByJudge as $eventContestantResult) {
+            $contestantCode = htmlspecialchars($eventContestantResult['code']);            
+            $contestantSequence = htmlspecialchars($eventContestantResult['sequence']);
+            $contestantName = htmlspecialchars($eventContestantResult['name']);
+            $contestantCategory = isset($eventContestantResult['category_code']) ? htmlspecialchars($eventContestantResult['category_code']) : '';
+            $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
+            $eventTypeCode = htmlspecialchars('SP');
 
-        
-                foreach ($resultEventContestantCategoryByJudge as $eventContestantResult) {
-                    $contestantCode = htmlspecialchars($eventContestantResult['code']);            
-                    $contestantSequence = htmlspecialchars($eventContestantResult['sequence']);
-                    $contestantName = htmlspecialchars($eventContestantResult['name']);
-                    $contestantCategory = isset($eventContestantResult['category_code']) ? htmlspecialchars($eventContestantResult['category_code']) : '';
-                    $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                    $eventTypeCode = htmlspecialchars('SP');
-    
-                    $criteria .= '
-                                <tr>
-                                    <td>
-                                        <div class="small text-center">
-                                        '. $contestantSequence .' ';
-
-                    if ($contestantGender != null && $conGeneral == 0) {
-                        // Add your content when $contestantGender is true
-                        $criteria .= ' - '. $contestantGender .' ';
-                    }
-                    else{
-                        $criteria .= '';
-                    }
-                                            
-                        $criteria .= '                
-                                        </div>
-                                    </td>
-                                    <input type="hidden" name="generateKeyCode[]" value="'. generateKey(eventScoreLast, 6) .'" />
-                                    <input type="hidden" name="judgeCategoryCode" value="'. $category_judge .'" />
-                                    <input type="hidden" name="contestantCode" value="'. $contestantCode.'" />
-                                    <input type="hidden" name="eventTypeCode" value="'.$eventTypeCode.'" />
-                                    <input type="hidden" name="judgesCode" value="'. $event_judge.'" />
-                                    ';
-    
-                        if ($resultEventCriteria->num_rows > 0) {
-                            foreach ($resultEventCriteria as $eventCriteriaResult) {
-                                $criteriaCode = $eventCriteriaResult['code'];
-                                $criteriaPercent = $eventCriteriaResult['percent'];
-                                $criteria .= '
-                                    <input type="hidden" name="criteriaCode[]" value="'. $criteriaCode.'" />
-                                    <td>
-                                        <div class="col-lg-12">
-                                            <input type="text" name="score[]" class="judge form-control" placeholder="Enter in Decimal" value="" maxlength="5" required data-percent="'.$criteriaPercent.'"/>
-                                        </div>
-                                    </td>';
-                            }
-                        }
-    
-                        $criteria .= '
-                                    <td class="col-sm-2" style="width: 185px">
-                                        <button data-event="'.$event_category.'" data-category="'.$category_judge.'" data-contestant="'.$contestantCode.'" data-eventtype="'.$eventTypeCode.'" data-judges="'.$event_judge.'" class="insertScoreCode btn btn-outline-success btn-sm mt-1 rounded">Submit</button>
-                                    </td>
-                                </tr>';
-    
-                    }
-    }
-    else {
-
-        //both Female and Male
-        if ($judgeCategoryIsBoth == "1") {
-
-            foreach ($contestantsFemaleMale as $eventContestantResult) {
-                $contestantCode = htmlspecialchars($eventContestantResult['code']);            
-                $contestantSequence = htmlspecialchars($eventContestantResult['sequence']);
-                $contestantName = htmlspecialchars($eventContestantResult['name']);
-                $contestantCategory = isset($eventContestantResult['category_code']) ? htmlspecialchars($eventContestantResult['category_code']) : '';
-                $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                $eventTypeCode = htmlspecialchars('SP');
-
-                $criteria .= '
+            $criteria .= '
                         <tr>
                             <td>
                                 <div class="small text-center">
                                 '. $contestantSequence .' ';
 
-                if ($contestantGender != null && $conGeneral == 0) {
-                    // Add your content when $contestantGender is true
-                    $criteria .= ' - '. $contestantGender .' ';
-                }
-                else{
-                    $criteria .= '';
-                }
-                                        
-                    $criteria .= '                
-                                    </div>
+            if ($contestantGender != null && $conGeneral == 0) {
+                $criteria .= ' - '. $contestantGender .' ';
+            }
+
+            $criteria .= '                
+                                </div>
                             </td>
                             <input type="hidden" name="generateKeyCode[]" value="'. generateKey(eventScoreLast, 6) .'" />
                             <input type="hidden" name="judgeCategoryCode" value="'. $category_judge .'" />
@@ -237,86 +166,29 @@ if($resultEventCategoryByjudge->num_rows > 0) {
                             <input type="hidden" name="judgesCode" value="'. $event_judge.'" />
                             ';
 
-                if ($resultEventCriteria->num_rows > 0) {
-                    foreach ($resultEventCriteria as $eventCriteriaResult) {
-                        $criteriaCode = $eventCriteriaResult['code'];
-                        $criteriaPercent = $eventCriteriaResult['percent'];
-                        $criteria .= '
-                            <input type="hidden" name="criteriaCode[]" value="'. $criteriaCode.'" />
-                            <td>
-                                <div class="col-lg-12">
-                                <input type="text" name="score[]" class="judge form-control" placeholder="Enter in Decimal" maxlength="5" required data-percent="'.$criteriaPercent.'" />
-                                </div>
-                            </td>';
-                    }
-                }
-
-                $criteria .= '
-                            <td class="col-sm-2" style="width: 185px">
-                                <button data-event="'.$event_category.'" data-category="'.$category_judge.'" data-contestant="'.$contestantCode.'" data-eventtype="'.$eventTypeCode.'" data-judges="'.$event_judge.'" class="insertScoreCode btn btn-outline-success btn-sm mt-1 rounded">Submit</button>
-                            </td>
-                        </tr>';
-
-                }
-            }
-            else{
-                // Both LGBTQ GAY and LESBIAN
-                foreach ($contestantsLgbtq as $eventContestantResult) {
-                    $contestantCode = htmlspecialchars($eventContestantResult['code']);            
-                    $contestantSequence = htmlspecialchars($eventContestantResult['sequence']);
-                    $contestantName = htmlspecialchars($eventContestantResult['name']);
-                    $contestantCategory = isset($eventContestantResult['category_code']) ? htmlspecialchars($eventContestantResult['category_code']) : '';
-                    $contestantGender = isset($eventContestantResult['gender']) ? htmlspecialchars($eventContestantResult['gender']) : '';
-                    $eventTypeCode = htmlspecialchars('SP');
-    
+            if ($resultEventCriteria->num_rows > 0) {
+                foreach ($resultEventCriteria as $eventCriteriaResult) {
+                    $criteriaCode = $eventCriteriaResult['code'];
+                    $criteriaPercent = $eventCriteriaResult['percent'];
                     $criteria .= '
-                                <tr>
-                                    <td>
-                                        <div class="small text-center">
-                                        '. $contestantSequence .' ';
-
-                    if ($contestantGender != null && $conGeneral == 0) {
-                        // Add your content when $contestantGender is true
-                        $criteria .= ' - '. $contestantGender .' ';
-                    }
-                    else{
-                        $criteria .= '';
-                    }
-                                            
-                        $criteria .= '                
-                                        </div>
-                                    </td>
-                                    <input type="hidden" name="generateKeyCode[]" value="'. generateKey(eventScoreLast, 6) .'" />
-                                    <input type="hidden" name="judgeCategoryCode" value="'. $category_judge .'" />
-                                    <input type="hidden" name="contestantCode" value="'. $contestantCode.'" />
-                                    <input type="hidden" name="eventTypeCode" value="'.$eventTypeCode.'" />
-                                    <input type="hidden" name="judgesCode" value="'. $event_judge.'" />
-                                    ';
-    
-                        if ($resultEventCriteria->num_rows > 0) {
-                            foreach ($resultEventCriteria as $eventCriteriaResult) {
-                                $criteriaCode = $eventCriteriaResult['code'];
-                                $criteriaPercent = $eventCriteriaResult['percent'];
-                                $criteria .= '
-                                    <input type="hidden" name="criteriaCode[]" value="'. $criteriaCode.'" />
-                                    <td>
-                                        <div class="col-lg-12">
-                                            <input type="text" name="score[]" class="judge form-control" placeholder="Enter in Decimal" value="" maxlength="5" required data-percent="'.$criteriaPercent.'"/>
-                                        </div>
-                                    </td>';
-                            }
-                        }
-    
-                        $criteria .= '
-                                    <td class="col-sm-2" style="width: 185px">
-                                        <button data-event="'.$event_category.'" data-category="'.$category_judge.'" data-contestant="'.$contestantCode.'" data-eventtype="'.$eventTypeCode.'" data-judges="'.$event_judge.'" class="insertScoreCode btn btn-outline-success btn-sm mt-1 rounded">Submit</button>
-                                    </td>
-                                </tr>';
-    
-                    }
+                        <input type="hidden" name="criteriaCode[]" value="'. $criteriaCode.'" />
+                        <td>
+                            <div class="col-lg-12">
+                                <input type="text" name="score[]" class="judge form-control" placeholder="Enter in Decimal" value="" maxlength="5" required data-percent="'.$criteriaPercent.'"/>
+                            </div>
+                        </td>';
+                }
             }
-                    //end
+
+            $criteria .= '
+                        <td class="col-sm-2" style="width: 185px">
+                            <button data-event="'.$event_category.'" data-category="'.$category_judge.'" data-contestant="'.$contestantCode.'" data-eventtype="'.$eventTypeCode.'" data-judges="'.$event_judge.'" class="insertScoreCode btn btn-outline-success btn-sm mt-1 rounded">Submit</button>
+                        </td>
+                    </tr>';
         }
+    } else {
+        $criteria .= '<tr><td colspan="50" align="center"><h4 class="text-muted">No contestants found for your assigned category.</h4></td></tr>';
+    }
     }
 
     $criteria .= '

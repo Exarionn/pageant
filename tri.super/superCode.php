@@ -171,13 +171,11 @@ if(isset($_POST['addContestants'])){
     $contestantName = $_POST['contestantName'];
     $contestantCategoryType = $_POST['contestantCategoryType'];
     $contestantGender = $_POST['contestantGender'];
-    $contestantIsBoth = $_POST['contestantIsBoth'];
-
 
 
     $sql = addContestant;
     $stmt = $db->prepare($sql);
-    $stmt->bind_param("ssssss", $contestantGenerated, $contestantSequence, $contestantName, $contestantCategoryType, $contestantGender, $contestantIsBoth);
+    $stmt->bind_param("sssss", $contestantGenerated, $contestantSequence, $contestantName, $contestantCategoryType, $contestantGender);
     
 
     $AddResult = $stmt->execute();
@@ -205,11 +203,10 @@ if(isset($_POST['updateContestantCode'])){
     $updateContestantCode = $_POST['updateContestantCode'];
     $updateContestantCategory = $_POST['updateContestantCategory'];
     $updateContestantGender = $_POST['updateContestantGender'];
-    $updateContestantIsBoth = $_POST['updateContestantIsBoth'];
 
     $contestantUpdateQuery = updateContestant;
     $stmt = $db->prepare($contestantUpdateQuery);
-    $stmt->bind_param("ssssss", $updateContestantSequence, $updateContestantName, $updateContestantCategory, $updateContestantGender, $updateContestantIsBoth, $updateContestantCode);
+    $stmt->bind_param("sssss", $updateContestantSequence, $updateContestantName, $updateContestantCategory, $updateContestantGender, $updateContestantCode);
     $updateResult = $stmt->execute();
     $stmt->close();
 
@@ -288,7 +285,8 @@ if(isset($_POST['addJudge'])){
 
     $sql = addJudge;
     $stmt = $db->prepare($sql);
-    $stmt->bind_param("sssssss", $judgeGenerated, $judgeUserName, $judgePassword, $judgeName, $judgeCategoryType, $judgeCategoryConditionType, $addedBy);
+    // addJudge no longer accepts is_both; bind without it
+    $stmt->bind_param("ssssss", $judgeGenerated, $judgeUserName, $judgePassword, $judgeName, $judgeCategoryType, $addedBy);
     $AddResult = $stmt->execute();
 
     if($AddResult) {
@@ -319,7 +317,8 @@ if(isset($_POST['updateJudge'])){
 
     $sql = updateJudge;
     $stmt = $db->prepare($sql);
-    $stmt->bind_param("sssssss", $updateJudgeUsername, $updateJudgePassword, $updateJudgeName, $updateJudgeCategoryType, $updateJudgePrivilege, $updatedBy, $updateJudgeCode);
+    // updateJudge signature changed (removed is_both)
+    $stmt->bind_param("ssssss", $updateJudgeUsername, $updateJudgePassword, $updateJudgeName, $updateJudgeCategoryType, $updatedBy, $updateJudgeCode);
     $AddResult = $stmt->execute();
 
     if($AddResult) {

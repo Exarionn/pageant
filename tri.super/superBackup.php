@@ -45,42 +45,8 @@
                         
                         <section class="mb-3">
                             <fieldset>
-                                <legend>Pageant Legend</legend>
                                 <div class="card">
                                     <div class="card-body">
-                                            <li class="mt-3 text-danger"><strong>Patch (05/21/2025):</strong></li>
-                                            <li><strong>New Privilege Added in Contestant:</strong> put Both in Contestant if score condition is both Male, female, gay or lesbian </li>
-                                            <li class="mt-3 text-danger"><strong>Patch (2024):</strong></li>
-                                            <li><strong>New Settings Added:</strong> Pageant Status Determine the Type if the program is General or Not.. </li>
-                                            <li><strong>Affected Part Admin Report</strong> This Patch is a condition to the title of the pageant Ex.: from Event Production summary: from Female Category Summary to General Summary if Condition is enable from setting</li>
-                                            <li><strong>New Weighted Scoring Pageant Type Point or Percentage System:</strong> Affected Admin Report vary to the Weighted Scoring for the Report reflected.</li>
-                                            <li><strong>Hide Gender if General</strong> Hides the gender in the judge if general also in Report</li>
-                                            <li><strong>Special Event Type Added:</strong> For Separate Scoring and Award Winner! Computation is base on the Point System, TotalScore / NumberOfJudge = Score</li>
-                                            <hr/>
-                                            <li class="mt-3 text-danger"><strong>Patch (FIX):</strong></li>
-                                            <li><strong>FIX: Percentage to Average:</strong> This changes the report removing the percentage</li>
-                                        </ul>
-                                        <hr/>
-                                        <div>
-                                            Functions
-                                        </div>    
-                                        <ul>
-                                            <li><strong>Category of Pageant:</strong> 
-                                                <ul>
-                                                    <li><strong>FE - Female:</strong> If the Category is Female only setup the contestant category to FE - Female and the judge is also FE - Female also the scoring previliege is optional unless it is both male or female to score.</li>
-                                                    <li><strong>MA - Male:</strong> If the Category is Male only setup the contestant category to MA - Male and the judge is also MA - Male also the scoring previliege is optional unless it is both male or female to score.</li>
-                                                    <li><strong>LGBTQ-LES - Lesbian:</strong> If the Category is Lesbian only setup the contestant category to LGBTQ-LES - Lesbian and the judge is also LGBTQ-LES - Lesbian also the scoring previliege is optional unless it is both gay or lesbian to score.</li>
-                                                    <li><strong>LGBTQ-GAY - GAY:</strong> If the Category is GAY only setup the contestant category to LGBTQ-GAY - Gay and the judge is also LGBTQ-GAY - Gay also the scoring previliege is optional unless it is both gay or lesbian to score.</li>
-                                                    
-
-                                                    <li class="mt-5 mb-5"><strong>If the judge has a restriction to score in a specific category Ex: Judge 1 is only scoring the Female or Male ths same as the Gay and Lesbian set. Then setup judge 1 to the perspective Category and set the Condition to 'NO CONDITION'.</strong></li>
-                                                </ul>
-                                            </li>
-                                            <li><strong>Event Criteria Type:</strong> PR - Prelimenary / F - Final this is a static variables to determine the event.</li>
-                                            <li><strong>Percentage of Criteria, Event:</strong> The percentage is the Score category. (Important!!)</li>
-                                            <li><strong>Condtion Finalist:</strong> A condtion to set the Number of Contestant to Enter the Final Round. (Important!!)</li>
-                                            <li><strong>Settings:</strong> Update Only the Configure the Condition of the number of finalist candidate also the percentage of event and criteria and the Pageant Name. (Important!!)</li>
-                                            <hr/>
                                         <ul>
                                             <li><strong>Backup Database:</strong> Click this button to create a backup of the database.</li>
                                             <li><strong>Clear Score:</strong> Click this button to clear the current score.</li>

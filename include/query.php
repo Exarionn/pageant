@@ -58,11 +58,11 @@
    define('eventTblList', 'SELECT code, event_type, event_name, event_percentage FROM event');
    define('eventObjList', 'SELECT code, event_type, event_name, event_percentage FROM event WHERE code = ?');
 
-   define('addContestant', 'INSERT INTO contestant (code, sequence, name, is_finalist, category_code, gender, is_both) VALUES (?, ?, ?, 0, ?, ?, ?)');
-   define('updateContestant', 'UPDATE contestant SET sequence = ?, name = ?, category_code = ?, gender = ?, is_both = ? WHERE code = ?');
+   define('addContestant', 'INSERT INTO contestant (code, sequence, name, is_finalist, category_code, gender) VALUES (?, ?, ?, 0, ?, ?)');
+   define('updateContestant', 'UPDATE contestant SET sequence = ?, name = ?, category_code = ?, gender = ? WHERE code = ?');
    define('deleteContestant', 'DELETE FROM contestant WHERE code = ?');
-   define('viewContestantUpdate', 'SELECT code, sequence, name, is_finalist, category_code, gender, is_both FROM contestant WHERE code = ?');
-   define('contestantTblList', 'SELECT * FROM contestant');
+   define('viewContestantUpdate', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE code = ?');
+   define('contestantTblList', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant');
 
    define('addSettings', 'INSERT INTO setting (condition_final, pageant_name) VALUES (?, ?, ?)');
    define('updateSettings', 'UPDATE setting SET condition_final = ?, pageant_name = ?, isGeneral = ? WHERE id = ?');
@@ -94,9 +94,9 @@
    
    define('eventPercentage', 'SELECT SUM(event_percentage) AS event_percent FROM event WHERE event_type = "PR"');
    
-   define('criteriaPercentage', 'SELECT SUM(percent) AS cretiria_percent FROM event_criteria WHERE criteria_type = "PR"');
+   define('criteriaPercentage', 'SELECT SUM(percent) AS criteria_percent FROM event_criteria WHERE criteria_type = "PR"');
 
-   define('criteriaPercentageFinal', 'SELECT SUM(percent) AS cretiria_percent FROM event_criteria WHERE criteria_type = "F"');
+   define('criteriaPercentageFinal', 'SELECT SUM(percent) AS criteria_percent FROM event_criteria WHERE criteria_type = "F"');
    
    define('allEventList', 'SELECT code, event_name FROM event');
 
@@ -124,21 +124,15 @@
 
    define('criteriaPercentUpdate', 'SELECT percent FROM event_criteria WHERE code = ?');
 
-   define('judgeByCategorySummaryListMale', 'SELECT code, name, category from user WHERE category IN ("MA", "B")');
+   define('judgeByCategorySummaryListMale', 'SELECT code, name, category from user WHERE category = "MA"');
 
-   define('judgeByCategorySummaryListFemale', 'SELECT code, name, category from user WHERE category IN ("FE", "B")');
-
-   define('judgeByCategorySummaryListMaleFemale', 'SELECT code, name, category from user WHERE category IN ("MA", "FE", "B")');
+   define('judgeByCategorySummaryListFemale', 'SELECT code, name, category from user WHERE category = "FE"');
 
    define('contestantByCategoryListFinal', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE is_finalist = "1" category_code = ?');
 
    define('contestantListFemaleMale', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("FE" ,"MA")');
 
-   define('contestantListFemaleMaleBoth', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("FE" ,"MA") AND is_both = "1"');
-
    define('contestantListLgbtq', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("LGBTQ-LES" ,"LGBTQ-GAY")');
-
-   define('contestantListLgbtqBoth', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("LGBTQ-LES" ,"LGBTQ-GAY") AND is_both = "2"');
 
    define('contestantListFinalFemaleMale', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("FE" ,"MA") AND is_finalist = 1 ');
 
@@ -148,13 +142,9 @@
 
    define('contestantListMale', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code = "MA"');
 
-   define('contestantListMaleFemale', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code = "MA" AND is_both = "1"');
-
    define('contestantListGay', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code = "LGBTQ-GAY"');
 
    define('contestantListLesbian', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code = "LGBTQ-LES"');
-
-   define('contestantListGayLesbian', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code = "LGBTQ-GAY" AND is_both = "2"');
 
    define('judgeCountByCategoryListFemale', 'SELECT COUNT(code) AS judge_count_by_category from user Where types = "isJudge" AND category = "FE"');
 
@@ -164,30 +154,48 @@
 
    define('contestantCountByCategoryMale', 'SELECT COUNT(code) AS contestant_size FROM contestant WHERE category_code = "MA"');
 
-   define('judgeByCategorySummaryListLesbian', 'SELECT code, name, category from user WHERE category IN ("LGBTQ-LES", "LGBTQ-B")');
+   define('judgeByCategorySummaryListLesbian', 'SELECT code, name, category from user WHERE category = "LGBTQ-LES"');
 
-   define('judgeByCategorySummaryListGay', 'SELECT code, name, category from user WHERE category IN ("LGBTQ-GAY", "LGBTQ-B")');
+   define('judgeByCategorySummaryListGay', 'SELECT code, name, category from user WHERE category = "LGBTQ-GAY"');
 
-   define('judgeByCategorySummaryListGayLesbian', 'SELECT code, name, category from user, is_both WHERE category IN ("LGBTQ-GAY", "LGBTQ-LES", "LGBTQ-B")');
+   define('judgeCountListFemale', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category = "FE"');
 
-   define('judgeCountListFemale', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category IN ("FE", "B")');
+   define('judgeCountListMale', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category = "MA"');
 
-   define('judgeCountListMale', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category IN ("MA", "B")');
+   define('judgeCountListLesbian', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category = "LGBTQ-LES"');
 
-   define('judgeCountListLesbian', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category IN ("LGBTQ-LES", "LGBTQ-B")');
+   define('judgeCountListGay', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category = "LGBTQ-GAY"');
 
-   define('judgeCountListGay', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category IN ("LGBTQ-GAY", "LGBTQ-B")');
+   define('contestantByCategoryFinalListFemale', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code IN ("FE")');
 
-   define('contestantByCategoryFinalListFemale', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code IN ("FE", "B")');
-
-   define('contestantByCategoryFinalListMale', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code IN ("MA", "B")');
-
-      define('contestantByCategoryFinalListMaleFemale', 'SELECT code, sequence, name, category_code, gender, is_both FROM contestant WHERE is_finalist = "1" AND category_code IN ("MA", "FE", "B") AND is_both = "1"');
+   define('contestantByCategoryFinalListMale', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code IN ("MA")');
 
    define('contestantByCategoryFinalListLesbian', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code IN ("LGBTQ-LES", "LGBTQ-B")');
 
    define('contestantByCategoryFinalListGay', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code IN ("LGBTQ-GAY", "LGBTQ-B")');
 
    define('userLast', 'SELECT code FROM user WHERE code ORDER BY code DESC LIMIT 1');
+
+   define('eventListFinalByCode', 'SELECT code, event_type, event_name FROM event WHERE event_type = "F" AND code = ?');
+   
+   define('judgeByCategorySummaryListMaleFemale', 'SELECT code, name, category from user WHERE category IN ("MA", "FE", "B")');
+
+   // Convenience queries that include the combined-category codes (B and LGBTQ-B)
+   define('contestantListFemaleWithBoth', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("FE","B")');
+   define('contestantListMaleWithBoth', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("MA","B")');
+   define('contestantListLesbianWithBoth', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("LGBTQ-LES","LGBTQ-B")');
+   define('contestantListGayWithBoth', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code IN ("LGBTQ-GAY","LGBTQ-B")');
+
+   // Both Male and Female category queries
+   define('contestantListBothMF', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code = "B"');
+   define('contestantByCategoryFinalListBothMF', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code = "B"');
+   define('judgeByCategorySummaryListBothMF', 'SELECT code, name, category from user WHERE category = "B"');
+   define('judgeCountListBothMF', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category = "B"');
+
+   // Both LGBTQ category queries
+   define('contestantListBothLGBTQ', 'SELECT code, sequence, name, is_finalist, category_code, gender FROM contestant WHERE category_code = "LGBTQ-B"');
+   define('contestantByCategoryFinalListBothLGBTQ', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE is_finalist = "1" AND category_code = "LGBTQ-B"');
+   define('judgeByCategorySummaryListBothLGBTQ', 'SELECT code, name, category from user WHERE category = "LGBTQ-B"');
+   define('judgeCountListBothLGBTQ', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge" AND category = "LGBTQ-B"');
 
 ?>

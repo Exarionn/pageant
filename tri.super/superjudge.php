@@ -82,8 +82,10 @@
                                                                     <option value="" selected disabled>~Select Category~</option>
                                                                     <option value="FE">FE - Female</option>
                                                                     <option value="MA">MA - Male</option>  
+                                                                    <option value="B">B - Both Female/Male</option>
                                                                     <option value="LGBTQ-LES">LGBTQ-LES - Lesbian</option>
                                                                     <option value="LGBTQ-GAY">LGBTQ-GAY - Gay</option>
+                                                                    <option value="LGBTQ-B">LGBTQ-B - Lesbian/Gay (Both)</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -132,7 +134,7 @@
                                                             <th>PASSWORD</th>
                                                             <th>NAME</th>
                                                             <th>CATEGORY</th>  
-                                                            <th>SCORING PRIVILEGE</th>
+                                                            <!-- SCORING PRIVILEGE removed -->
                                                             <th>ACTION</th>
                                                         </tr>
                                                     </thead>
@@ -187,19 +189,7 @@
                                                             
                                                         </td>
 
-                                                        <td>
-                                                            <?php
-                                                            if($rowLogs['is_both'] == 1) {
-                                                                echo "Both Male/Female";
-                                                            }
-                                                            else if ($rowLogs['is_both'] == 2){
-                                                                echo "Both Gay/Lesbian";
-                                                            }
-                                                            else{
-                                                                echo "No Condition";
-                                                            }
-                                                            ?>
-                                                        </td>
+                                                        <!-- is_both display removed -->
 
                                                         <td>
                                                             <button data-code='<?= $rowLogs['code']; ?>' class="updateJudgeCode btn btn-outline-warning btn-sm rounded-circle"><i class="fa-solid fa-pen"></i></button>

@@ -221,12 +221,18 @@ if(isset($_POST['updateContestantCode'])){
                                             <option value="MA" <?php echo ($rowUpdate['category_code'] == "MA") ? 'selected' : '' ?>>
                                                 Male
                                             </option>
-                                            <option value="LGBTQ-LES" <?php echo ($rowUpdate['category_code'] == "LGBTQ-LES") ? 'selected' : '' ?>>
-                                               Lesbian
-                                            </option>
-                                            <option value="LGBTQ-GAY" <?php echo ($rowUpdate['category_code'] == "LGBTQ-GAY") ? 'selected' : '' ?>>
-                                               Gay
-                                            </option>                                  
+                                                          <option value="B" <?php echo ($rowUpdate['category_code'] == "B") ? 'selected' : '' ?>>
+                                                              Both Female/Male
+                                                          </option>
+                                                          <option value="LGBTQ-LES" <?php echo ($rowUpdate['category_code'] == "LGBTQ-LES") ? 'selected' : '' ?>>
+                                                              Lesbian
+                                                          </option>
+                                                          <option value="LGBTQ-GAY" <?php echo ($rowUpdate['category_code'] == "LGBTQ-GAY") ? 'selected' : '' ?>>
+                                                              Gay
+                                                          </option>
+                                                          <option value="LGBTQ-B" <?php echo ($rowUpdate['category_code'] == "LGBTQ-B") ? 'selected' : '' ?>>
+                                                              Lesbian/Gay (Both)
+                                                          </option>                                  
                                     </select>
                                     <label for="input">Category Type</label>
                                 </div>
@@ -242,6 +248,9 @@ if(isset($_POST['updateContestantCode'])){
                                         <option value="M" <?php echo ($rowUpdate['gender'] == "M") ? 'selected' : '' ?>>
                                             Male
                                         </option>
+                                        <option value="B" <?php echo ($rowUpdate['gender'] == "B") ? 'selected' : '' ?>>
+                                            Both Female/Male
+                                        </option>
                                         <option value="LGBTQ-F" <?php echo ($rowUpdate['gender'] == "LGBTQ-F") ? 'selected' : '' ?>>
                                             Lesbian
                                         </option>
@@ -250,24 +259,6 @@ if(isset($_POST['updateContestantCode'])){
                                         </option>
                                     </select>
                                     <label for="input">Gender</label>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-12 mb-3">
-                                <div class="form-floating">
-                                    <select class="form-select" id="updateContestantIsBoth" name="updateContestantIsBoth" required>
-                                        <option value="" disabled>~Select Gender~</option>
-                                        <option value="0" <?php echo ($rowUpdate['is_both'] == "0") ? 'selected' : '' ?>>
-                                            No Condition
-                                        </option>
-                                        <option value="1" <?php echo ($rowUpdate['is_both'] == "1") ? 'selected' : '' ?>>
-                                            Both Male/Female
-                                        </option>
-                                        <option value="2" <?php echo ($rowUpdate['is_both'] == "2") ? 'selected' : '' ?>>
-                                            Both Gay/Lesbian
-                                        </option>
-                                    </select>
-                                    <label for="input">Category Privilege</label>
                                 </div>
                             </div>
 
@@ -516,12 +507,18 @@ if(isset($_POST['updateJudgeCode'])) {
                                     <option value="MA" <?php echo ($rowUpdate['category'] == "MA") ? 'selected' : ''; ?>>
                                         Male
                                     </option>
+                             <option value="B" <?php echo ($rowUpdate['category'] == "B") ? 'selected' : ''; ?>>
+                                 Both Female/Male
+                             </option>
                                     <option value="LGBTQ-LES" <?php echo ($rowUpdate['category'] == "LGBTQ-LES") ? 'selected' : ''; ?>>
                                         Lesbian
                                     </option>
                                     <option value="LGBTQ-GAY" <?php echo ($rowUpdate['category'] == "LGBTQ-GAY") ? 'selected' : ''; ?>>
                                         Gay
                                     </option>
+                             <option value="LGBTQ-B" <?php echo ($rowUpdate['category'] == "LGBTQ-B") ? 'selected' : ''; ?>>
+                                 Lesbian/Gay (Both)
+                             </option>
                                 </select>
 
                                         <label for="input">Category Type</label>
@@ -532,18 +529,7 @@ if(isset($_POST['updateJudgeCode'])) {
                                     <div class="form-floating">
                                         <select class="form-select" id="updateJudgePrivilege" name="updateJudgePrivilege">
                                                 <option value="" disabled>~Select Privilege~</option>
-                                                <option value="0" <?php echo ($rowUpdate['is_both'] == 0) ? 'selected' : ''; ?>>
-                                                    No Condition
-                                                </option>
-                                                <option value="1" <?php echo ($rowUpdate['is_both'] == 1) ? 'selected' : ''; ?>>
-                                                    Both Male/Female</option>
-                                                <option value="2" <?php echo ($rowUpdate['is_both'] == 2) ? 'selected' : ''; ?>>
-                                                    Both Gay/Lesbian</option>
-                                        </select>
-                                        <label for="input">Privilege Type</label>
-                                    </div>
-                                </div>
-                        </div>
+                                                <option value="0">No Condition</option>
                             <div><hr class="dropdown-divider"/></div>
                                 <div class="mt-3 mb-0 d-flex bd-highlight">
                                     <button class="btn btn-outline-success btn-block ms-auto btn-sm" type="submit" name="updateJudge" id="updateJudge" style="text-decoration:none; -bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">Update</button>

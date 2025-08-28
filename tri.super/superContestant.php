@@ -75,8 +75,10 @@
                                                                     <option value="" selected disabled>~Select Category~</option>
                                                                     <option value="FE">FE - Female</option>
                                                                     <option value="MA">MA - Male</option>
+                                                                    <option value="B">B - Both Female/Male</option>
                                                                     <option value="LGBTQ-LES">LGBTQ-LES - Lesbian</option>
                                                                     <option value="LGBTQ-GAY">LGBTQ-GAY - Gay</option>
+                                                                    <option value="LGBTQ-B">LGBTQ-B - Lesbian/Gay (Both)</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -89,17 +91,6 @@
                                                                     <option value="M">Male</option>
                                                                     <option value="LGBTQ-F">LGBTQ-Female</option>
                                                                     <option value="LGBTQ-M">LGBTQ-Male</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-md-3 mb-3 mt-2">
-                                                            <div class="form-floating">
-                                                                <select class="form-select p-3" id="contestantIsBoth" name="contestantIsBoth">
-                                                                    <option value="" selected disabled>~Select Category Privilege~</option>
-                                                                    <option value="0">No Condition</option>
-                                                                    <option value="1">Both Male/Female</option>
-                                                                    <option value="2">Both LGBTQ-Gay/Lesbian</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -136,8 +127,7 @@
                                                             <th>CANDIDATE NO.</th>
                                                             <th>NAME</th>
                                                             <th>CATEGORY</th>
-                                                            <th>GENDER</th>
-                                                            <th>BOTH</th>
+                                                            <th>GENDER</th>     
                                                             <th>ACTION</th>
                                                         </tr>
                                                     </thead>
@@ -174,6 +164,12 @@
                                                                 case 'LGBTQ-LES':
                                                                     echo 'Lesbian';
                                                                     break;
+                                                                case 'B':
+                                                                    echo 'Both Female/Male';
+                                                                    break;
+                                                                case 'LGBTQ-B':
+                                                                    echo 'Lesbian/Gay (Both)';
+                                                                    break;
                                                                 default:
                                                                     echo 'Unknown'; // Default for other categories
                                                             }
@@ -191,29 +187,20 @@
                                                                 case 'M':
                                                                     echo 'Male';
                                                                     break;
-                                                                case 'LGBTQ-B':
-                                                                    echo 'Gay';
+                                                                case 'B':
+                                                                    echo 'Both Female/Male';
                                                                     break;
                                                                 case 'LGBTQ-F':
                                                                     echo 'Lesbian';
                                                                     break;
+                                                                case 'LGBTQ-M':
+                                                                    echo 'Gay';
+                                                                    break;
+                                                                case 'LGBTQ-B':
+                                                                    echo 'Lesbian/Gay (Both)';
+                                                                    break;
                                                                 default:
                                                                     echo 'Unknown'; // Default for other categories
-                                                            }
-                                                            ?>
-                                                        </td>
-
-                                                        <td>
-
-                                                            <?php
-                                                            if($rowLogs['is_both'] == 1) {
-                                                                echo "Both Male/Female";
-                                                            }
-                                                            else if ($rowLogs['is_both'] == 2){
-                                                                echo "Both Gay/Lesbian";
-                                                            }
-                                                            else{
-                                                                echo "No Condition";
                                                             }
                                                             ?>
                                                         </td>

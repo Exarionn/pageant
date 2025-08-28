@@ -42,33 +42,6 @@
                     <div class="container-fluid px-4">
                         <h1 class="mt-4 text-muted">Admin Dashboard</h1>
                         
-                        <ul class="nav nav-tabs" id="genderTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="female-tab" data-bs-toggle="tab" data-bs-target="#female"
-                                    type="button" role="tab" aria-controls="female" aria-selected="true">Female</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="male-tab" data-bs-toggle="tab" data-bs-target="#male"
-                                    type="button" role="tab" aria-controls="male" aria-selected="false">Male</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="both-mf-tab" data-bs-toggle="tab" data-bs-target="#both-mf"
-                                    type="button" role="tab" aria-controls="both-mf" aria-selected="false">Both Male/Female</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="gay-tab" data-bs-toggle="tab" data-bs-target="#gay"
-                                    type="button" role="tab" aria-controls="gay" aria-selected="false">Gay</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="lesbian-tab" data-bs-toggle="tab" data-bs-target="#lesbian"
-                                    type="button" role="tab" aria-controls="lesbian" aria-selected="false">Lesbian</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="both-gl-tab" data-bs-toggle="tab" data-bs-target="#both-gl"
-                                    type="button" role="tab" aria-controls="both-gl" aria-selected="false">Both Gay/Lesbian</button>
-                            </li>
-                        </ul>
-
                             <section class="mb-3">
                                             <div class="criteria justify-content-center mt-4 mb-5">
                                                 <div class="event_summary"></div>
@@ -91,6 +64,28 @@
         <script src="../js/scripts.js"></script>
         <script src="../js/simple-datatables@latest.js"></script>
         <script src="../js/tableDisplay.js"></script>
+        <script>
+        // Initialize simple-datatables for any tables with id starting with "data"
+        function initAllDataTables(root=document) {
+            if (!window.simpleDatatables) return;
+            const ids = ['#data1','#data2','#data3','#data4','#data5','#data6','#data1-single','#data2-single','#data3-single','#data4-single','#data5-single','#data6-single'];
+            ids.forEach(sel => {
+                const el = root.querySelector(sel);
+                if (el && !el._dtInited) {
+                    try {
+                        new simpleDatatables.DataTable(el, { perPage: 20, perPageSelect: [10,20,50,100] });
+                        el._dtInited = true;
+                    } catch(e) { /* ignore */ }
+                }
+            });
+        }
+        // Re-init after AJAX loads
+        $(document).ajaxSuccess(function() { initAllDataTables(document); });
+        // Also init on first load if any present
+        document.addEventListener('DOMContentLoaded', function(){ initAllDataTables(document); });
+        // When switching tabs, some libraries need recalculation; simple-datatables handles hidden state, but ensure created
+        document.addEventListener('shown.bs.tab', function(){ initAllDataTables(document); });
+        </script>
         <script>
 
         // get judge score
