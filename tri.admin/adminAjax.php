@@ -796,7 +796,7 @@ $summary .='
 
                                             $summary .= '
                                             <div class="" align="center">
-                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data5\'], [\'selected\', \'mf-hd\'])">Print Summary</button>
+                                                <button class="btn btn-outline-primary btn-sm rounded" onclick="printTables([\'data5\'], [\'selected\', \'m-hd\'])">Print Summary</button>
                                             </div>';
                                     }
 $summary .='

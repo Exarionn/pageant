@@ -33,7 +33,7 @@
     </head>
 
     <body class="sb-nav-fixed">
-    <?php include "../include/superinclude/superTopNav.php";?>
+    <?php include "../include/topNav.php";?>
         <div id="layoutSidenav">
             <div id="layoutSidenav_nav">
             <?php include "../include/superinclude/superSidenav.php";?>
@@ -57,7 +57,7 @@
                                             <li><strong>Hide Gender if General</strong> Hides the gender in the judge if general also in Report</li>
                                             <li><strong>Special Event Type Added:</strong> For Separate Scoring and Award Winner! Computation is base on the Point System, TotalScore / NumberOfJudge = Score</li>
                                             <hr/>
-                                            <li class="mt-3 text-danger"><strong>Patch (FIX) 2024:</strong></li>
+                                            <li class="mt-3 text-danger"><strong>Patch (FIX):</strong></li>
                                             <li><strong>FIX: Percentage to Average:</strong> This changes the report removing the percentage</li>
                                         </ul>
                                         <hr/>
