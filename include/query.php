@@ -5,7 +5,7 @@
    define('judgeEventScoreList', 'SELECT code, event_type_code, event_code, judge_code, contestant_code, score from event_score Where event_code = ? AND contestant_code = ? AND judge_code = ?');
    define('judgeEventScoreSummaryList', 'SELECT SUM(score) AS total_score FROM event_score WHERE contestant_code = ? AND judge_code = ?');
    define('judgeCountList', 'SELECT COUNT(code) AS judge_count from user Where types = "isJudge"');
-   define('judgeAccountList', 'SELECT code, username, password, name, category, is_both from user Where types = "isJudge" order by code asc');
+   define('judgeAccountList', 'SELECT code, username, password, name, category from user Where types = "isJudge" order by code asc');
    define('contestantCount', 'SELECT COUNT(code) AS contestant_size FROM contestant');
    define('contestantCountByCategory', 'SELECT COUNT(code) AS contestant_size FROM contestant WHERE category_code = ?');
 
@@ -36,8 +36,8 @@
    define('eventCount', 'SELECT COUNT(code) AS event_size FROM event');
 
 
-   define('addJudge', 'INSERT INTO user (code, username, password, name, types, category, is_both, status, added_by, added_timestamp) VALUES (?, ?, ?, ?, "isJudge", ?, ?, "1", ? ,CURRENT_TIMESTAMP)');
-   define('updateJudge','UPDATE user SET username = ?, password = ?, name = ?, category = ?, is_both = ?, updated_by = ?, updated_timestamp = CURRENT_TIMESTAMP WHERE code = ?');
+   define('addJudge', 'INSERT INTO user (code, username, password, name, types, category, status, added_by, added_timestamp) VALUES (?, ?, ?, ?, "isJudge", ?, "1", ? ,CURRENT_TIMESTAMP)');
+   define('updateJudge','UPDATE user SET username = ?, password = ?, name = ?, category = ?, updated_by = ?, updated_timestamp = CURRENT_TIMESTAMP WHERE code = ?');
    define('updateViewJudge', 'SELECT * FROM user WHERE types = "isJudge" AND  code = ?');
    define('deleteJudge', 'DELETE FROM user WHERE code = ?');
    define('judgeLast', 'SELECT code FROM user ORDER BY code DESC LIMIT 1');
@@ -49,7 +49,7 @@
    define('deleteCriteria', 'DELETE FROM event_criteria WHERE code = ?');
    define('criteriaViewUpdate', 'SELECT code, criteria_type, event_code, criteria_name, percent FROM event_criteria WHERE code = ?');
    define('criteriaTblList', 'SELECT code, criteria_type, event_code, criteria_name, percent FROM event_criteria');
-   define('superAccountList', 'SELECT code, username, password, name, category, is_both from user Where types = "isSuper" order by code asc');
+   define('superAccountList', 'SELECT code, username, password, name, category from user Where types = "isSuper" order by code asc');
 
    define('addEvent', 'INSERT INTO event (code, event_type, event_name, event_percentage, added_by, added_timestamp) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)');
    define('updateEvent', 'UPDATE event SET event_type = ?, event_name = ?, event_percentage = ?,  updated_by = ?, updated_timestamp = CURRENT_TIMESTAMP WHERE code= ?');
@@ -106,7 +106,7 @@
 
    define('eventPercentageFinal', 'SELECT SUM(event_percentage) AS event_percent FROM event WHERE event_type = "F"');
 
-   define('judgeByCategoryList', 'SELECT category, is_both from user WHERE code = ?');
+   define('judgeByCategoryList', 'SELECT category from user WHERE code = ?');
    
    define('contestantCategoryByJudge', 'SELECT code, sequence, name, category_code, gender FROM contestant WHERE category_code = ?');
 

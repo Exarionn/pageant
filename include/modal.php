@@ -525,11 +525,6 @@ if(isset($_POST['updateJudgeCode'])) {
                                     </div>
                                 </div>
 
-                                <div class="col-sm-12 mb-3">
-                                    <div class="form-floating">
-                                        <select class="form-select" id="updateJudgePrivilege" name="updateJudgePrivilege">
-                                                <option value="" disabled>~Select Privilege~</option>
-                                                <option value="0">No Condition</option>
                             <div><hr class="dropdown-divider"/></div>
                                 <div class="mt-3 mb-0 d-flex bd-highlight">
                                     <button class="btn btn-outline-success btn-block ms-auto btn-sm" type="submit" name="updateJudge" id="updateJudge" style="text-decoration:none; -bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">Update</button>

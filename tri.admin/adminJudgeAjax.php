@@ -371,7 +371,7 @@
                         $resultEventCategoryByjudge = $stmt->get_result();
                         $fetchResultEventCategoryByJudge = $resultEventCategoryByjudge->fetch_assoc();
 
-                        $judgeCategoryIsBoth = $fetchResultEventCategoryByJudge['is_both'];
+                        // is_both removed; judge category alone determines view filters
 
                         // Add navigation tabs
                         $judge .= '<ul class="nav nav-tabs mt-4 justify-content-center" id="categoryTabs" role="tablist">

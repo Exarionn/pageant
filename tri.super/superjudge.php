@@ -90,16 +90,7 @@
                                                             </div>
                                                         </div>
 
-                                                        <div class="col-md-3 mb-3 mt-2">
-                                                            <div class="form-floating">
-                                                                <select class="form-select p-3" id="judgeCategoryConditionType" name="judgeCategoryConditionType" required>
-                                                                    <option value="" selected disabled>~Select Scoring Priviliege~</option>
-                                                                    <option value="0">NO CONDITION</option>
-                                                                    <option value="1">BOTH MALE/FEMALE</option>
-                                                                    <option value="2">BOTH LGBTQ-GAY/LESBIAN</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
+                                                        
                                                 </div>
                                                     <div><hr class="dropdown-divider"/></div>
                                                         <div class="mt-3 mb-0 d-flex bd-highlight">
