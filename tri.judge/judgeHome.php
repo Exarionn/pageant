@@ -78,6 +78,12 @@
             $(document).on('change', '.event_category', function() {
                 var event_category = $(this).val();
 
+                // Reset other dropdowns
+                $('.event_categorySpecial').val('');
+                $('.event_category_final').val('');
+                lastSelectedEventCategorySpecial = null;
+                lastSelectedEventCategoryFinal = null;
+
                 // Only proceed if the selected value is different
                 if (event_category !== lastSelectedEventCategory) {
                     lastSelectedEventCategory = event_category; // Update last selected value
@@ -114,6 +120,12 @@
 
             $(document).on('change', '.event_categorySpecial', function() {
                 var event_category = $(this).val();
+
+                // Reset other dropdowns
+                $('.event_category').val('');
+                $('.event_category_final').val('');
+                lastSelectedEventCategory = null;
+                lastSelectedEventCategoryFinal = null;
 
                 // Only proceed if the selected value is different
                 if (event_category !== lastSelectedEventCategorySpecial) {
@@ -154,6 +166,12 @@
 
             $(document).on('change', '.event_category_final', function() {
                 var event_category_final = $(this).val();
+
+                // Reset other dropdowns
+                $('.event_category').val('');
+                $('.event_categorySpecial').val('');
+                lastSelectedEventCategory = null;
+                lastSelectedEventCategorySpecial = null;
 
                 // Only proceed if the selected value is different
                 if (event_category_final !== lastSelectedEventCategoryFinal) {
