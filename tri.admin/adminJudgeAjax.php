@@ -16,6 +16,7 @@
         <title>Admin | Judge Score</title>
         <link rel="icon" type="image/x-icon" href="../assets/img/<?= $logo ?>" />
         <link href="../css/dataTable.css" rel="stylesheet" />
+        <link href="../css/custom-table.css" rel="stylesheet" />
         <link href="../css/styles.css" rel="stylesheet" />
         <link rel="stylesheet" href="../css/jquery-ui.min.css">
         <script src="../js/all.js" crossorigin="anonymous"></script>
@@ -139,22 +140,22 @@
                                         $eventTitle = ($fetchResultEvents['event_type'] == "SP") ? "Special Event" : "";
                                         $output .= '<h3 class="mt-2 text-danger selected" align="center">' . $eventTitle . '</h3>';
                                         
-                                        $output .= '<div class="card-body table-responsive-sm">
-                                                        <table class="table table-hover" id="'.$tableId.'">
-                                                            <thead>
+                                        $output .= '<div class="card-body table-responsive">
+                                                        <table class="table table-hover table-bordered" id="'.$tableId.'">
+                                                            <thead class="table-light">
                                                                 <tr>
-                                                                    <th><div class="small ms-3 me-3" align="center">Candidate No.</div></th>';
+                                                                    <th class="text-center"><div class="small">Candidate No.</div></th>';
                                         
                                         $totalPercent = 0;
                                         foreach ($resultEventCriteria as $eventCriteriaResult) {
                                             $criteriaHeader = $eventCriteriaResult['criteria_name'];
                                             $criteriaHeaderPercent = $eventCriteriaResult['percent'];
                                             $totalPercent += $criteriaHeaderPercent;
-                                            $output .= '<th data-type="number"><div class="small ms-3 me-3" align="center">'.$criteriaHeader.'('.$criteriaHeaderPercent.')</div></th>';
+                                            $output .= '<th data-type="number" class="text-center"><div class="small">'.$criteriaHeader.' ('.$criteriaHeaderPercent.')</div></th>';
                                         }
                                         
-                                        $output .= '<th data-type="number"><div class="small text-success ms-3 me-3" align="center">Total('.$totalPercent.')</div></th>
-                                                    <th><div class="small ms-3 me-3" align="center">Action</div></th>
+                                        $output .= '<th data-type="number" class="text-center"><div class="small text-success">Total ('.$totalPercent.')</div></th>
+                                                    <th class="text-center"><div class="small">Action</div></th>
                                                     </tr></thead><tbody>';
                                         
                                         foreach ($contestants as $eventContestantResult) {
@@ -171,7 +172,7 @@
                                                 }
                                             }
                                             
-                                            $output .= '<tr><td><div class="small text-center">' . $contestantSequence;
+                                            $output .= '<tr><td class="text-center"><div class="small">' . $contestantSequence;
                                             
                                             if ($contestantGender != null && $isGeneral == 0) {
                                                 $output .= ' - ' . $contestantGender;
@@ -196,14 +197,14 @@
                                                 if ($fetchResultEventScore !== null) {
                                                     $score = $fetchResultEventScore['score'];
                                                     $totalScore += $score;
-                                                    $output .= '<td><div class="small text-center">'.$score.'</div></td>';
+                                                    $output .= '<td class="text-center"><div class="small">'.$score.'</div></td>';
                                                 } else {
-                                                    $output .= '<td><div class="small text-center"></div></td>';
+                                                    $output .= '<td class="text-center"><div class="small"></div></td>';
                                                 }
                                             }
                                             
-                                            $output .= '<td><div class="small text-center">'.$totalScore.'</div></td>
-                                                        <td><button data-code='.$contestantCode.' class="updateGenCode btn btn-outline-warning btn-sm rounded">Update</button></td></tr>';
+                                            $output .= '<td class="text-center"><div class="small">'.$totalScore.'</div></td>
+                                                        <td class="text-center"><button data-code='.$contestantCode.' class="updateGenCode btn btn-warning btn-sm">Update</button></td></tr>';
                                         }
                                         
                                         $output .= '</tbody></table></div>';
@@ -371,7 +372,7 @@
                         $resultEventCategoryByjudge = $stmt->get_result();
                         $fetchResultEventCategoryByJudge = $resultEventCategoryByjudge->fetch_assoc();
 
-                        $judgeCategoryIsBoth = $fetchResultEventCategoryByJudge['is_both'];
+                        // is_both removed; judge category alone determines view filters
 
                         // Add navigation tabs
                         $judge .= '<ul class="nav nav-tabs mt-4 justify-content-center" id="categoryTabs" role="tablist">

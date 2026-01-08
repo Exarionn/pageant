@@ -17,6 +17,7 @@
         <link rel="icon" type="image/x-icon" href="../assets/img/<?= $logo ?>" />
         <link href="../css/dataTable.css" rel="stylesheet" />
         <link href="../css/styles.css" rel="stylesheet" />
+        <link href="../css/custom-table.css" rel="stylesheet" />
         <link rel="stylesheet" href="../css/jquery-ui.min.css">
         <script src="../js/all.js" crossorigin="anonymous"></script>
         <style>

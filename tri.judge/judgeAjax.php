@@ -19,11 +19,25 @@ if(isset($_POST['event_category'], $_POST['event_judge'], $_POST['category_judge
     $category_judge = sanitizeInput($_POST['category_judge']);
     $conGeneral = isset($_POST['conGeneral']) ? $_POST['conGeneral'] : 0;
 
-    // Fetch contestants strictly by judge's category
+    // Fetch contestants based on judge's category
     $contestants = [];
-    $q = contestantCategoryByJudge; // expects one parameter: category_code
-    $stmt = $db->prepare($q);
-    $stmt->bind_param("s", $category_judge);
+    
+    // Judges with "Both" categories can score multiple contestant categories
+    if ($category_judge == 'B') {
+        // Both M/F judges can score Female, Male, and Both M/F contestants
+        $q = "SELECT code, sequence, name, category_code, gender FROM contestant WHERE category_code IN ('FE', 'MA', 'B')";
+        $stmt = $db->prepare($q);
+    } elseif ($category_judge == 'LGBTQ-B') {
+        // Both LGBTQ judges can score Lesbian, Gay, and Both LGBTQ contestants
+        $q = "SELECT code, sequence, name, category_code, gender FROM contestant WHERE category_code IN ('LGBTQ-LES', 'LGBTQ-GAY', 'LGBTQ-B')";
+        $stmt = $db->prepare($q);
+    } else {
+        // Specific category judges can only score their own category
+        $q = contestantCategoryByJudge;
+        $stmt = $db->prepare($q);
+        $stmt->bind_param("s", $category_judge);
+    }
+    
     $stmt->execute();
     $res = $stmt->get_result();
     if ($res) {

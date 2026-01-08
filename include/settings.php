@@ -1,11 +1,12 @@
 <?php
 $settings = mysqli_query($db, "SELECT * FROM setting") or die('query failed');
+$fetchSettings = [];
 if(mysqli_num_rows($settings) > 0){
-            $fetchSettings = mysqli_fetch_assoc($settings);
+    $fetchSettings = mysqli_fetch_assoc($settings);
 }
-$settingName = $fetchSettings['pageant_name'];
-$isGeneral = $fetchSettings['isGeneral'];
-$weightedScoring = $fetchSettings['weighted_scoring'];
-$logo = $fetchSettings['logo'];
-$cover = $fetchSettings['cover_photo'];
+$settingName = $fetchSettings['pageant_name'] ?? '';
+$isGeneral = $fetchSettings['isGeneral'] ?? 0;
+$weightedScoring = $fetchSettings['weighted_scoring'] ?? 0;
+$logo = $fetchSettings['logo'] ?? 'logo.png';
+$cover = $fetchSettings['cover_photo'] ?? 'pageant-background.png';
 ?>

@@ -1,6 +1,7 @@
 <?php
 require './include/connector/dbconn.php';
 include "./include/query.php";
+include "include/settings.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,30 +13,27 @@ include "./include/query.php";
     <link href="css/styles.css" rel="stylesheet" />
     <link rel="stylesheet" href="./css/fontawesome.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <script src="./js/bootstrap.bundle.min.js"></script>
-    <script src="./js/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet" href="./css/fontawesome.css">
-    <link rel="stylesheet" href="./css/jquery-ui.min.css">
-    <script src="./js/popper.min.js"></script>
-    <script src="./js/sweetalert2.all.min.js"></script>
-    <script src="./js/fontawesome.js" crossorigin="anonymous"></script>
-    <link rel="icon" type="image/x-icon" href="assets/img/logo.png" />
-    <script src="./js/all.js"></script>
-    <?php 
-    include "include/logo.php";
-    include "./include/settings.php";
-    ?>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="css/fontawesome.css">
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+    <script src="js/popper.min.js"></script>
+    <script src="js/sweetalert2.all.min.js"></script>
+    <script src="js/fontawesome.js" crossorigin="anonymous"></script>
+    <link rel="icon" type="image/x-icon" href="assets/img/<?=$logo?>" />
+    <script src="js/all.js"></script>
     <style>
-	body{margin: 0;
-		 background-image: url("assets/img/pageant-background.png");
-		 background-size: cover;
-         background-position: center;
-         background-repeat: no-repeat;
-         background-attachment: fixed;
-         font-family: Arial;
-         height: 100%;
-         width: 100%;
-		}
+	body{
+		margin: 0;
+		background-image: url("assets/img/<?=$cover?>");
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		background-attachment: fixed;
+		font-family: Arial;
+		height: 100vh;
+		width: 100%;
+	}
 
     .modal-content {
         border-radius: 10px;
@@ -45,30 +43,24 @@ include "./include/query.php";
 
 
 
-    <body class="bg-black" id="page-top ">
+    <body class="bg-black" id="page-top" style="cursor: pointer;">
     
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
             <div class="container px-4">
-                <a class="navbar-brand text-warning fs-6" href="index.php"><b> <?= $fetchSettings['pageant_name']?></b></a>
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                	<span class="navbar-toggler-icon"></span></button>
-
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item"><a class="login nav-link" href="#">Login</a></li>
-                    </ul>
+                <div class="navbar-brand text-warning fs-6 d-flex align-items-center mx-auto">
+                    <img src="./assets/img/<?=$logo?>" alt="Logo" height="40" class="me-2">
+                    <b><?= $fetchSettings['pageant_name']?></b>
                 </div>
             </div>
         </nav>
 
         <!-- Modal -->
-        <div class="modal fade" id="modalLogin" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" role="dialog">
+        <div class="modal" id="modalLogin" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" role="dialog">
         <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="card-header align-items-center justify-content-center text-center">
-                <img  src="./assets/img/logo.png" width="200" height="200">
+                <img  src="./assets/img/<?=$logo?>" width="200" height="200">
                 <h4 class="text-center font-weight-light fw-bold"><span class="text-warning">WELCOME</span></h4>
             </div>
             <div class="modal-body bg-light">
@@ -82,7 +74,7 @@ include "./include/query.php";
                         <label for="inputPassword">Password</label>
                     </div>
                     <div class="form-check mb-2">
-                        <input class="form-check-input" onclick="myFunction()" id="showpassword" type="checkbox" value="" />
+                        <input class="form-check-input" onclick="togglePassword()" id="showpassword" type="checkbox" value="" />
                         <label class="form-check-label" for="showpassword">Show Password</label>
                     </div>
                     
@@ -118,36 +110,29 @@ include "./include/query.php";
         }
         </script>
         <script>
-            //view modal
+            // Click anywhere on screen to show login modal
             $(document).ready(function(){
-
-                $('.login').click(function(e){
-                    e.preventDefault();
-                    $.ajax({
-                        url: './tri.login/login.php',
-                        type: 'POST',
-                        success: function(response){
-                            $('#modalLogin').modal('show');
-                        }
-                    });
-
+                $('body').click(function(e){
+                    // Don't trigger if clicking inside modal
+                    if (!$(e.target).closest('.modal').length) {
+                        $('#modalLogin').modal('show');
+                    }
                 });
-
             });
         </script>
 
         <script>
-            function myFunction() {
-            var x = document.getElementById("myInput");
-            if (x.type === "password") {
-                x.type = "text";
-            } else {
-                x.type = "password";
-            }
+            function togglePassword() {
+                var x = document.getElementById("myInput");
+                if (x.type === "password") {
+                    x.type = "text";
+                } else {
+                    x.type = "password";
+                }
             } 
         </script>
 
     <br><br>
     </body>
 </html>
-   <?php include('./include/footerSwal.php');?>
+   <?php include('include/footerSwal.php');?>

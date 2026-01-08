@@ -16,6 +16,7 @@
         <link rel="icon" type="image/x-icon" href="../assets/img/<?= $logo ?>" />
         <link href="../css/dataTable.css" rel="stylesheet" />
         <link href="../css/styles.css" rel="stylesheet" />
+        <link href="../css/custom-table.css" rel="stylesheet" />
         <link rel="stylesheet" href="../css/jquery-ui.min.css">
         <script src="../js/all.js" crossorigin="anonymous"></script>
     </head>
@@ -29,7 +30,7 @@
             <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid px-4 mb-3">
-                        <h1 class="mt-4 text-muted">Preliminary Overall Summary</h1>
+                        <h1 class="mt-4 text-muted">Admin Dashboard</h1>
 <?php
                                     // Build one table with tabs to filter categories
                                     $contestantsByCategoryFemale  = [];
@@ -75,11 +76,11 @@
                                     $res = $stmt->get_result();
                                     if ($res) { while ($row = $res->fetch_assoc()) { $contestantsByCategoryBothLGBTQ[] = $row; } }
 
-                                    // Judge counts per category
-                                    $fetchResultEventJudgeCountFemale = $db->query(judgeCountListFemale)->fetch_assoc();
-                                    $fetchResultEventJudgeCountMale = $db->query(judgeCountListMale)->fetch_assoc();
-                                    $fetchResultEventJudgeCountLesbian = $db->query(judgeCountListLesbian)->fetch_assoc();
-                                    $fetchResultEventJudgeCountGay = $db->query(judgeCountListGay)->fetch_assoc();
+                                    // Judge counts per category - include "Both" judges
+                                    $fetchResultEventJudgeCountFemale = $db->query("SELECT COUNT(code) AS judge_count from user Where types = 'isJudge' AND category IN ('FE', 'B')")->fetch_assoc();
+                                    $fetchResultEventJudgeCountMale = $db->query("SELECT COUNT(code) AS judge_count from user Where types = 'isJudge' AND category IN ('MA', 'B')")->fetch_assoc();
+                                    $fetchResultEventJudgeCountLesbian = $db->query("SELECT COUNT(code) AS judge_count from user Where types = 'isJudge' AND category IN ('LGBTQ-LES', 'LGBTQ-B')")->fetch_assoc();
+                                    $fetchResultEventJudgeCountGay = $db->query("SELECT COUNT(code) AS judge_count from user Where types = 'isJudge' AND category IN ('LGBTQ-GAY', 'LGBTQ-B')")->fetch_assoc();
                                     $fetchResultEventJudgeCountBothMF = $db->query(judgeCountListBothMF)->fetch_assoc();
                                     $fetchResultEventJudgeCountBothLGBTQ = $db->query(judgeCountListBothLGBTQ)->fetch_assoc();
 
@@ -116,8 +117,53 @@
                                     $isGeneralVal = isset($isGeneral) ? (int)$isGeneral : 0;
                                     $weightedScoringVal = isset($weightedScoring) ? (int)$weightedScoring : 0;
 
+                                    // Build category map
+                                    $categories = [];
+                                    if (!empty($contestantsByCategoryFemale)) {
+                                        $categories['FE'] = [ 'name' => 'Female', 'judgeCount' => (int)($fetchResultEventJudgeCountFemale['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryFemale ];
+                                    }
+                                    if (!empty($contestantsByCategoryMale)) {
+                                        $categories['MA'] = [ 'name' => 'Male', 'judgeCount' => (int)($fetchResultEventJudgeCountMale['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryMale ];
+                                    }
+                                    if (!empty($contestantsByCategoryLesbian)) {
+                                        $categories['LGBTQ-LES'] = [ 'name' => 'Lesbian', 'judgeCount' => (int)($fetchResultEventJudgeCountLesbian['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryLesbian ];
+                                    }
+                                    if (!empty($contestantsByCategoryGay)) {
+                                        $categories['LGBTQ-GAY'] = [ 'name' => 'Gay', 'judgeCount' => (int)($fetchResultEventJudgeCountGay['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryGay ];
+                                    }
+                                    if (!empty($contestantsByCategoryBothMF)) {
+                                        $categories['B'] = [ 'name' => 'Both M/F', 'judgeCount' => (int)($fetchResultEventJudgeCountBothMF['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryBothMF ];
+                                    }
+                                    if (!empty($contestantsByCategoryBothLGBTQ)) {
+                                        $categories['LGBTQ-B'] = [ 'name' => 'Both LGBTQ', 'judgeCount' => (int)($fetchResultEventJudgeCountBothLGBTQ['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryBothLGBTQ ];
+                                    }
+
+                                    // Batch fetch all scores for all contestants and events
+                                    $allScores = [];
+                                    $contestantCodes = [];
+                                    foreach ($categories as $cat) {
+                                        foreach ($cat['contestants'] as $c) {
+                                            $contestantCodes[] = $c['code'];
+                                        }
+                                    }
+                                    if (!empty($contestantCodes) && !empty($events)) {
+                                        $contestantPlaceholders = implode(',', array_fill(0, count($contestantCodes), '?'));
+                                        $eventCodes = array_column($events, 'code');
+                                        $eventPlaceholders = implode(',', array_fill(0, count($eventCodes), '?'));
+                                        $batchQuery = "SELECT event_code, contestant_code, category_code, SUM(score) AS overallSummary FROM event_score WHERE contestant_code IN ($contestantPlaceholders) AND event_code IN ($eventPlaceholders) GROUP BY event_code, contestant_code, category_code";
+                                        $stmt = $db->prepare($batchQuery);
+                                        $types = str_repeat('s', count($contestantCodes) + count($eventCodes));
+                                        $params = array_merge($contestantCodes, $eventCodes);
+                                        $stmt->bind_param($types, ...$params);
+                                        $stmt->execute();
+                                        $res = $stmt->get_result();
+                                        while ($row = $res->fetch_assoc()) {
+                                            $allScores[$row['contestant_code']][$row['event_code']][$row['category_code']] = (float)$row['overallSummary'];
+                                        }
+                                    }
+
                                     // Helper to compute ranked rows for a category
-                                    $computeCategory = function(array $contestants, int $judgeCount) use ($db, $events, $criteriaByEvent, $overallSumOfCriteria, $isGeneralVal, $weightedScoringVal) {
+                                    $computeCategory = function(array $contestants, int $judgeCount, string $categoryCode) use ($db, $events, $criteriaByEvent, $overallSumOfCriteria, $isGeneralVal, $weightedScoringVal, $allScores) {
                                         $ranked = [];
                                         foreach ($contestants as $c) {
                                             $contestantCode = htmlspecialchars($c['code']);
@@ -133,14 +179,21 @@
 
                                             foreach ($events as $ev) {
                                                 $evCode = $ev['code'];
-                                                $stmt = $db->prepare(overallSummaryOverallSummary);
-                                                $stmt->bind_param("ss", $evCode, $contestantCode);
-                                                $stmt->execute();
-                                                $res = $stmt->get_result();
+                                                // Include scores from judges of the same category OR "Both" category
+                                                // FE includes FE + B, MA includes MA + B, LGBTQ-LES includes LGBTQ-LES + LGBTQ-B, etc.
                                                 $judgeScore = 0.0;
-                                                if ($res && $res->num_rows > 0) {
-                                                    $row = $res->fetch_assoc();
-                                                    $judgeScore = isset($row['overallSummary']) ? (float)$row['overallSummary'] : 0.0;
+                                                if (isset($allScores[$contestantCode][$evCode][$categoryCode])) {
+                                                    $judgeScore += $allScores[$contestantCode][$evCode][$categoryCode];
+                                                }
+                                                // Add scores from "Both" judges
+                                                if ($categoryCode == 'FE' || $categoryCode == 'MA') {
+                                                    if (isset($allScores[$contestantCode][$evCode]['B'])) {
+                                                        $judgeScore += $allScores[$contestantCode][$evCode]['B'];
+                                                    }
+                                                } elseif ($categoryCode == 'LGBTQ-LES' || $categoryCode == 'LGBTQ-GAY') {
+                                                    if (isset($allScores[$contestantCode][$evCode]['LGBTQ-B'])) {
+                                                        $judgeScore += $allScores[$contestantCode][$evCode]['LGBTQ-B'];
+                                                    }
                                                 }
 
                                                 $evCrit = isset($criteriaByEvent[$evCode]) ? (float)$criteriaByEvent[$evCode] : 0.0;
@@ -201,27 +254,6 @@
                                         return $ranked;
                                     };
 
-                                    // Build category map
-                                    $categories = [];
-                                    if (!empty($contestantsByCategoryFemale)) {
-                                        $categories['FE'] = [ 'name' => 'Female', 'judgeCount' => (int)($fetchResultEventJudgeCountFemale['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryFemale ];
-                                    }
-                                    if (!empty($contestantsByCategoryMale)) {
-                                        $categories['MA'] = [ 'name' => 'Male', 'judgeCount' => (int)($fetchResultEventJudgeCountMale['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryMale ];
-                                    }
-                                    if (!empty($contestantsByCategoryLesbian)) {
-                                        $categories['LGBTQ-LES'] = [ 'name' => 'Lesbian', 'judgeCount' => (int)($fetchResultEventJudgeCountLesbian['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryLesbian ];
-                                    }
-                                    if (!empty($contestantsByCategoryGay)) {
-                                        $categories['LGBTQ-GAY'] = [ 'name' => 'Gay', 'judgeCount' => (int)($fetchResultEventJudgeCountGay['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryGay ];
-                                    }
-                                    if (!empty($contestantsByCategoryBothMF)) {
-                                        $categories['B'] = [ 'name' => 'Both M/F', 'judgeCount' => (int)($fetchResultEventJudgeCountBothMF['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryBothMF ];
-                                    }
-                                    if (!empty($contestantsByCategoryBothLGBTQ)) {
-                                        $categories['LGBTQ-B'] = [ 'name' => 'Both LGBTQ', 'judgeCount' => (int)($fetchResultEventJudgeCountBothLGBTQ['judge_count'] ?? 0), 'contestants' => $contestantsByCategoryBothLGBTQ ];
-                                    }
-
                                     $summary = '';
                                     if (count($categories) === 0) {
                                         $summary .= '<div class="mt-5" align="center"><h2 class="text-danger">No Contestants Found!</h2></div>';
@@ -229,40 +261,41 @@
                                     } else {
                                         $summary .= '<h3 class="mt-4 selected text-muted" align="center">Preliminary Overall Summary</h3>';
                                         $summary .= '<ul class="nav nav-tabs mt-4 justify-content-center" id="categoryTabs" role="tablist">';
-                                        // All Categories tab first
-                                        $summary .= '<li class="nav-item" role="presentation">'
-                                                  . '<button class="nav-link active" id="all-tab" data-cat="" type="button" role="tab">All Categories</button>'
-                                                  . '</li>';
+                                        $summary .= '<li class="nav-item" role="presentation"><button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">All Categories</button></li>';
                                         foreach ($categories as $code => $cat) {
-                                            $summary .= '<li class="nav-item" role="presentation"><button class="nav-link" data-cat="' . htmlspecialchars($code) . '" type="button" role="tab">' . htmlspecialchars($cat['name']) . '</button></li>';
+                                            $summary .= '<li class="nav-item" role="presentation"><button class="nav-link" id="'.htmlspecialchars($code).'-tab" data-bs-toggle="tab" data-bs-target="#'.htmlspecialchars($code).'" type="button" role="tab">' . htmlspecialchars($cat['name']) . '</button></li>';
                                         }
                                         $summary .= '</ul>';
-                                        $headerText = ($isGeneral == 1) ? 'General Summary' : 'All Categories Summary';
-                                        $summary .= '<h6 id="categoryHeader" class="cat-title mt-4 text-muted" align="center">' . $headerText . '</h6>';
 
-                                        $summary .= '<div class="card-body table-responsive-sm">';
-                                        $summary .= '<table class="table table-hover" id="summaryTable">';
-                                        $summary .= '<thead><tr>';
-                                        $summary .= '<th><div class="small" align="center">Candidate No.</div></th>';
-                                        foreach ($events as $ev) {
-                                            $summary .= '<th data-type="number"><div class="small ms-3 me-3" align="center">' . htmlspecialchars($ev['name']) . '</div></th>';
-                                        }
-                                        $avgHdr = ($weightedScoring == 1) ? 'Average (%) - Overall' : 'Average (pts) - Overall';
-                                        $summary .= '<th data-type="number"><div class="small text-success" align="center">'.$avgHdr.'</div></th>';
-                                        $summary .= '<th data-type="number"><div class="small" align="center">Rank</div></th>';
-                                        $summary .= '</tr></thead><tbody>';
+                                        // Tab content
+                                        $summary .= '<div class="tab-content" id="categoryTabContent">';
+                                        $summary .= '<div class="tab-pane fade show active" id="all" role="tabpanel">';
 
+                                        // Generate separate table for each category in "All Categories" tab
                                         foreach ($categories as $code => $cat) {
-                                            $rows = $computeCategory($cat['contestants'], (int)$cat['judgeCount']);
+                                            $headerText = ($isGeneral == 1) ? 'General Summary' : $cat['name'] . ' Category Summary';
+                                            $summary .= '<h6 class="cat-title mt-4 text-muted" align="center">' . $headerText . '</h6>';
+                                            $summary .= '<div class="card-body table-responsive-sm">';
+                                            $summary .= '<table class="table table-hover" id="summaryTable-'.htmlspecialchars($code).'">';
+                                            $summary .= '<thead><tr>';
+                                            $summary .= '<th><div class="small" align="center">Candidate No.</div></th>';
+                                            foreach ($events as $ev) {
+                                                $summary .= '<th data-type="number"><div class="small ms-3 me-3" align="center">' . htmlspecialchars($ev['name']) . '</div></th>';
+                                            }
+                                            $avgHdr = ($weightedScoring == 1) ? 'Average (%) - Overall' : 'Average (pts) - Overall';
+                                            $summary .= '<th data-type="number"><div class="small text-success" align="center">'.$avgHdr.'</div></th>';
+                                            $summary .= '<th data-type="number"><div class="small" align="center">Rank</div></th>';
+                                            $summary .= '</tr></thead><tbody>';
+
+                                            $rows = $computeCategory($cat['contestants'], (int)$cat['judgeCount'], $code);
                                             foreach ($rows as $r) {
-                                                $summary .= '<tr data-cat="' . htmlspecialchars($code) . '">';
+                                                $summary .= '<tr>';
                                                 $summary .= '<td><div class="small text-center">' . htmlspecialchars($r['label']) . '</div></td>';
                                                 foreach ($r['scores'] as $sc) {
                                                     if ($sc !== null) {
                                                         if (is_array($sc)) {
                                                             $summary .= '<td data-sort="'.number_format((float)$sc['val'], 2, '.', '').'"><div class="small text-center">' . $sc['disp'] . '</div></td>';
                                                         } else {
-                                                            // fallback
                                                             $summary .= '<td><div class="small text-center">' . $sc . '</div></td>';
                                                         }
                                                     } else {
@@ -273,10 +306,57 @@
                                                 $summary .= '<td data-sort="'.number_format((float)($r['rankVal'] ?? 0), 2, '.', '').'"><div class="small text-center">' . htmlspecialchars($r['rankDisp']) . '</div></td>';
                                                 $summary .= '</tr>';
                                             }
+                                            $summary .= '</tbody></table></div>';
                                         }
-                                        $summary .= '</tbody></table></div>';
 
-                                        $summary .= '<div class="" align="center"><button class="btn btn-outline-primary btn-sm rounded" onclick="printCurrentCategory()">Print Summary</button></div>';
+                                        $summary .= '</div>'; // Close "All Categories" tab
+
+                                        // Individual category tabs
+                                        foreach ($categories as $code => $cat) {
+                                            $summary .= '<div class="tab-pane fade" id="'.htmlspecialchars($code).'" role="tabpanel">';
+                                            $headerText = ($isGeneral == 1) ? 'General Summary' : $cat['name'] . ' Category Summary';
+                                            $summary .= '<h6 class="cat-title mt-4 text-muted" align="center">' . $headerText . '</h6>';
+                                            $summary .= '<div class="card-body table-responsive-sm">';
+                                            $summary .= '<table class="table table-hover" id="summaryTable-'.htmlspecialchars($code).'-single">';
+                                            $summary .= '<thead><tr>';
+                                            $summary .= '<th><div class="small" align="center">Candidate No.</div></th>';
+                                            foreach ($events as $ev) {
+                                                $summary .= '<th data-type="number"><div class="small ms-3 me-3" align="center">' . htmlspecialchars($ev['name']) . '</div></th>';
+                                            }
+                                            $avgHdr = ($weightedScoring == 1) ? 'Average (%) - Overall' : 'Average (pts) - Overall';
+                                            $summary .= '<th data-type="number"><div class="small text-success" align="center">'.$avgHdr.'</div></th>';
+                                            $summary .= '<th data-type="number"><div class="small" align="center">Rank</div></th>';
+                                            $summary .= '</tr></thead><tbody>';
+
+                                            $rows = $computeCategory($cat['contestants'], (int)$cat['judgeCount'], $code);
+                                            foreach ($rows as $r) {
+                                                $summary .= '<tr>';
+                                                $summary .= '<td><div class="small text-center">' . htmlspecialchars($r['label']) . '</div></td>';
+                                                foreach ($r['scores'] as $sc) {
+                                                    if ($sc !== null) {
+                                                        if (is_array($sc)) {
+                                                            $summary .= '<td data-sort="'.number_format((float)$sc['val'], 2, '.', '').'"><div class="small text-center">' . $sc['disp'] . '</div></td>';
+                                                        } else {
+                                                            $summary .= '<td><div class="small text-center">' . $sc . '</div></td>';
+                                                        }
+                                                    } else {
+                                                        $summary .= '<td><div class="small text-center">&nbsp;</div></td>';
+                                                    }
+                                                }
+                                                $summary .= '<td data-sort="'.number_format((float)($r['avgVal'] ?? 0), 2, '.', '').'"><div class="small text-center">' . htmlspecialchars($r['avgDisp']) . '</div></td>';
+                                                $summary .= '<td data-sort="'.number_format((float)($r['rankVal'] ?? 0), 2, '.', '').'"><div class="small text-center">' . htmlspecialchars($r['rankDisp']) . '</div></td>';
+                                                $summary .= '</tr>';
+                                            }
+                                            $summary .= '</tbody></table></div>';
+                                            $summary .= '</div>';
+                                        }
+
+                                        $summary .= '</div>'; // Close tab-content
+
+                                        $summary .= '<div class="" align="center">';
+                                        $summary .= '<button class="btn btn-outline-primary btn-sm rounded me-2" onclick="printCurrentCategory()">Print Summary</button>';
+                                        $summary .= '<button class="btn btn-outline-success btn-sm rounded" onclick="generateFinalButton()">Generate Finalist</button>';
+                                        $summary .= '</div>';
                                         echo $summary;
                                     }
 ?>
@@ -286,58 +366,12 @@
             </div>
         </div>
         <script>
-        // Filter table rows by selected category and update header
         (function() {
-            function showCategory(cat) {
-                var header = document.getElementById('categoryHeader');
-                var selectedBtn = document.querySelector('#categoryTabs .nav-link.active');
-                var name = selectedBtn ? selectedBtn.textContent.trim() : '';
-                if (header) {
-                    var isGeneral = <?php echo isset($isGeneral) ? (int)$isGeneral : 0; ?>;
-                    var text = 'All Categories Summary';
-                    if (isGeneral === 1) {
-                        text = 'General Summary';
-                    } else if (name && name.toLowerCase() !== 'all categories') {
-                        text = name + ' Category Summary';
-                    }
-                    header.textContent = text;
-                }
-                var rows = document.querySelectorAll('#summaryTable tbody tr');
-                rows.forEach(function(r){
-                    if (!cat || r.getAttribute('data-cat') === cat) {
-                        r.style.display = '';
-                    } else {
-                        r.style.display = 'none';
-                    }
-                });
-            }
-
-            var tabs = document.querySelectorAll('#categoryTabs .nav-link');
-            tabs.forEach(function(btn){
-                btn.addEventListener('click', function(){
-                    tabs.forEach(function(b){ b.classList.remove('active'); });
-                    this.classList.add('active');
-                    showCategory(this.getAttribute('data-cat'));
-                });
-            });
-
-            // Initialize to All (first active)
-            var firstActive = document.querySelector('#categoryTabs .nav-link.active');
-            if (firstActive) { showCategory(firstActive.getAttribute('data-cat')); }
-
-            // Expose a print helper that prints the selected header and the main table
             window.printCurrentCategory = function() {
-                var active = document.querySelector('#categoryTabs .nav-link.active');
-                var cat = active ? active.getAttribute('data-cat') : null;
-                // Create a clone of the table with only visible rows
-                var table = document.getElementById('summaryTable');
-                if (!table) { window.print(); return; }
-
-                var clone = table.cloneNode(true);
-                // Remove hidden rows in clone
-                clone.querySelectorAll('tbody tr').forEach(function(r){
-                    if (r.style.display === 'none') { r.remove(); }
-                });
+                var activeTab = document.querySelector('#categoryTabs .nav-link.active');
+                var tabId = activeTab ? activeTab.getAttribute('data-bs-target') : '#all';
+                var tabPane = document.querySelector(tabId);
+                if (!tabPane) { window.print(); return; }
 
                 var printWindow = window.open('', '', 'height=600,width=800');
                 printWindow.document.write('<html><head><title>Print</title>');
@@ -347,9 +381,7 @@
                 printWindow.document.write('</head><body>');
                 var selected = document.querySelector('.selected');
                 if (selected) { printWindow.document.write(selected.outerHTML); }
-                var header = document.getElementById('categoryHeader');
-                if (header) { printWindow.document.write(header.outerHTML); }
-                printWindow.document.body.appendChild(clone);
+                printWindow.document.write(tabPane.innerHTML);
                 printWindow.document.write('</body></html>');
                 printWindow.document.close();
                 printWindow.onload = function() { printWindow.focus(); printWindow.print(); printWindow.close(); };
@@ -389,18 +421,21 @@ function generateFinalButton() {
         <script src="../js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
         <script src="../js/scripts.js"></script>
         <script src="../js/simple-datatables@latest.js"></script>
-        <script src="../js/tableDisplay.js"></script>
-        <script>
-        // Initialize simple-datatables for the summary table
-        document.addEventListener('DOMContentLoaded', function(){
-            if (window.simpleDatatables) {
-                var el = document.querySelector('#summaryTable');
-                if (el) {
-                    try { new simpleDatatables.DataTable(el, { perPage: 20, perPageSelect: [10,20,50,100] }); } catch(e) {}
-                }
-            }
+
+<script>
+// Initialize simple-datatables for all summary tables
+if (window.simpleDatatables && document.querySelectorAll('table[id^="summaryTable-"]').length > 0) {
+    document.querySelectorAll('table[id^="summaryTable-"]').forEach(function(table) {
+        new simpleDatatables.DataTable(table, {
+            searchable: false,
+            perPageSelect: false,
+            perPage: 100,
+            sortable: true
         });
-        </script>
+    });
+}
+</script>
+
         
     </body>
 </html>

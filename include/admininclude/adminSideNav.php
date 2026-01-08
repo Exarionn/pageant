@@ -82,9 +82,12 @@
                         </div>
                     </div>
                     <div class="sb-sidenav-footer py-3">
-                        <div class="small">Logged in as :
-                            <small class="fw-bold"><?php echo $fetch['name']; ?></small>
+                        <div class="small text-center mb-2">Logged in as:
+                            <div class="fw-bold"><?php echo $fetch['name']; ?></div>
                         </div>
+                        <a href="../tri.login/logout.php" class="btn btn-danger btn-sm w-100">
+                            <i class="fa-solid fa-right-from-bracket"></i> LOG OUT
+                        </a>
                     </div>
                 </nav>
             </div>

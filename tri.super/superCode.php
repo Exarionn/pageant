@@ -249,7 +249,6 @@ if(isset($_POST['addJudge'])){
     $judgeGenerated = $_POST['judgeGenerated'];    
     $judgeUserName = $_POST['judgeUserName'];
     $judgePassword = $_POST['judgePassword'];
-    $judgeCategoryConditionType = $_POST['judgeCategoryConditionType'];
 
     $judgeCategoryType = $_POST['judgeCategoryType'];
     $judgeName = $_POST['judgeName'];
@@ -285,7 +284,7 @@ if(isset($_POST['addJudge'])){
 
     $sql = addJudge;
     $stmt = $db->prepare($sql);
-    // addJudge no longer accepts is_both; bind without it
+    // addJudge accepts category but no privilege/is_both
     $stmt->bind_param("ssssss", $judgeGenerated, $judgeUserName, $judgePassword, $judgeName, $judgeCategoryType, $addedBy);
     $AddResult = $stmt->execute();
 
@@ -310,14 +309,13 @@ if(isset($_POST['updateJudge'])){
     $updateJudgePassword = $_POST['updateJudgePassword'];
     $updateJudgeName = $_POST['updateJudgeName'];
     $updateJudgeCategoryType = $_POST['updateJudgeCategoryType'];
-    $updateJudgePrivilege = $_POST['updateJudgePrivilege'];
     $updatedBy = $_POST['updatedBy'];
     
     $updateJudgeCode = $_POST['updateJudgeCode'];
 
     $sql = updateJudge;
     $stmt = $db->prepare($sql);
-    // updateJudge signature changed (removed is_both)
+    // updateJudge signature: username, password, name, category, updated_by, code
     $stmt->bind_param("ssssss", $updateJudgeUsername, $updateJudgePassword, $updateJudgeName, $updateJudgeCategoryType, $updatedBy, $updateJudgeCode);
     $AddResult = $stmt->execute();
 
@@ -361,16 +359,12 @@ if(isset($_POST['deleteJudgeCode'])){
 if(isset($_POST['clearScoreButton'])) {
 
      // Execute the SQL query to update contestants
-     $finalistUpdateSql = "UPDATE contestant SET is_finalist = '0'";
+    $finalistUpdateSql = "UPDATE contestant SET is_finalist = '0'";
+    $clearEventScoreSql = "DELETE FROM event_score";
 
-     $clearEventScoreSql = "DELETE FROM event_score";
+    if ($db->query($finalistUpdateSql) === TRUE &&
+        $db->query($clearEventScoreSql) === TRUE) {
 
-     $PrelimenaryOverAllSql = "DELETE FROM prelimenary_overall";
-
-// Perform the query
-if ($db->query($finalistUpdateSql) === TRUE &&
-    $db->query($clearEventScoreSql) === TRUE &&
-    $db->query($PrelimenaryOverAllSql) === TRUE) {
  echo "Score Clear";
 } else {
  echo "Error Clearing Score: " . $db->error;

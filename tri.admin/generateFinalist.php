@@ -5,170 +5,124 @@ include "../include/settings.php";
 include "../include/query.php";
 
 if (isset($_POST['action'])) {
-    // Reset the is_finalist column to 0 for all contestants
     $sqlReset = "UPDATE contestant SET is_finalist = '0'";
     
-            // Execute the reset query
-            if ($db->query($sqlReset) === TRUE) {
+    if ($db->query($sqlReset) === TRUE) {
+        $conditionFinal = (int)$fetchSettings['condition_final'];
+        $weightedScoring = (int)$weightedScoring;
 
-                $feLimit = $fetchSettings['condition_final'];
-                $maLimit = $fetchSettings['condition_final'];
-                $lesLimit = $fetchSettings['condition_final'];
-                $gayLimit = $fetchSettings['condition_final'];
-                $bothFMLimit = $fetchSettings['condition_final'];
-                $lgbtqBothLimit = $fetchSettings['condition_final'];
-
-                        // Update finalists for FE category (strict to FE only)
-                        $sqlUpdateFE = "WITH ranked_contestants AS (
-                                                                SELECT 
-                                                                        po.contestant_code,
-                                                                        ROW_NUMBER() OVER(ORDER BY SUM(CAST(po.score AS DECIMAL(10,2))) DESC) AS cat_rank
-                                                                FROM event_score AS po
-                                                                INNER JOIN contestant AS c2 ON po.contestant_code = c2.code
-                                                                WHERE po.event_type_code = 'PR'
-                                              AND c2.category_code = 'FE'
-                                                                GROUP BY po.contestant_code
-                                                        )
-                                                        UPDATE contestant AS c
-                                                        JOIN ranked_contestants AS temp 
-                                                            ON c.code = temp.contestant_code AND temp.cat_rank <= ?
-                                                        SET c.is_finalist = '1'";
-
-        // Update finalists for MA category
-            // Update finalists for MA category (strict to MA only)
-            $sqlUpdateMA = "WITH ranked_contestants AS (
-                                                        SELECT 
-                                                                po.contestant_code,
-                                                                ROW_NUMBER() OVER(ORDER BY SUM(CAST(po.score AS DECIMAL(10,2))) DESC) AS cat_rank
-                                                        FROM event_score AS po
-                                                        INNER JOIN contestant AS c2 ON po.contestant_code = c2.code
-                                                        WHERE po.event_type_code = 'PR'
-                          AND c2.category_code = 'MA'
-                                                        GROUP BY po.contestant_code
-                                                )
-                                                UPDATE contestant AS c
-                                                JOIN ranked_contestants AS temp 
-                                                    ON c.code = temp.contestant_code AND temp.cat_rank <= ?
-                                                SET c.is_finalist = '1'";
-
-        // Update finalists for LGBTQ-LES category
-        // Update finalists for LGBTQ-LES (strict)
-        $sqlUpdateLgbtqLes = "WITH ranked_contestants AS (
-                                                                SELECT 
-                                                                        po.contestant_code,
-                                                                        ROW_NUMBER() OVER(ORDER BY SUM(CAST(po.score AS DECIMAL(10,2))) DESC) AS cat_rank
-                                                                FROM event_score AS po
-                                                                INNER JOIN contestant AS c2 ON po.contestant_code = c2.code
-                                                                WHERE po.event_type_code = 'PR'
-                      AND c2.category_code = 'LGBTQ-LES'
-                                                                GROUP BY po.contestant_code
-                                                        )
-                                                        UPDATE contestant AS c
-                                                        JOIN ranked_contestants AS temp 
-                                                            ON c.code = temp.contestant_code AND temp.cat_rank <= ?
-                                                        SET c.is_finalist = '1'";
-
-        // Update finalists for LGBTQ-GAY category
-                    // Update finalists for LGBTQ-GAY (strict)
-                    $sqlUpdateLgbtqGay = "WITH ranked_contestants AS (
-                                                                SELECT 
-                                                                        po.contestant_code,
-                                                                        ROW_NUMBER() OVER(ORDER BY SUM(CAST(po.score AS DECIMAL(10,2))) DESC) AS cat_rank
-                                                                FROM event_score AS po
-                                                                INNER JOIN contestant AS c2 ON po.contestant_code = c2.code
-                                                                WHERE po.event_type_code = 'PR'
-                                                                        AND c2.category_code = 'LGBTQ-GAY'
-                                                                GROUP BY po.contestant_code
-                                                        )
-                                                        UPDATE contestant AS c
-                                                        JOIN ranked_contestants AS temp 
-                                                            ON c.code = temp.contestant_code AND temp.cat_rank <= ?
-                                                        SET c.is_finalist = '1'";                    
-
-                    // Update finalists for FE/MA Both category (category_code = 'B')
-                    $sqlUpdateBothFM = "WITH ranked_contestants AS (
-                                                                    SELECT 
-                                                                            po.contestant_code,
-                                                                            ROW_NUMBER() OVER(ORDER BY SUM(CAST(po.score AS DECIMAL(10,2))) DESC) AS cat_rank
-                                                                    FROM event_score AS po
-                                                                    INNER JOIN contestant AS c2 ON po.contestant_code = c2.code
-                                                                    WHERE po.event_type_code = 'PR'
-                                                                        AND c2.category_code = 'B'
-                                                                    GROUP BY po.contestant_code
-                                                            )
-                                                            UPDATE contestant AS c
-                                                            JOIN ranked_contestants AS temp 
-                                                                ON c.code = temp.contestant_code AND temp.cat_rank <= ?
-                                                            SET c.is_finalist = '1'";
-
-                    // Update finalists for LGBTQ Both category (category_code = 'LGBTQ-B')
-                    $sqlUpdateLgbtqBoth = "WITH ranked_contestants AS (
-                                                                    SELECT 
-                                                                            po.contestant_code,
-                                                                            ROW_NUMBER() OVER(ORDER BY SUM(CAST(po.score AS DECIMAL(10,2))) DESC) AS cat_rank
-                                                                    FROM event_score AS po
-                                                                    INNER JOIN contestant AS c2 ON po.contestant_code = c2.code
-                                                                    WHERE po.event_type_code = 'PR'
-                                                                        AND c2.category_code = 'LGBTQ-B'
-                                                                    GROUP BY po.contestant_code
-                                                            )
-                                                            UPDATE contestant AS c
-                                                            JOIN ranked_contestants AS temp 
-                                                                ON c.code = temp.contestant_code AND temp.cat_rank <= ?
-                                                            SET c.is_finalist = '1'";
-
-        // Prepare and bind the parameters to prevent SQL injection
-        if (($stmtFE = $db->prepare($sqlUpdateFE)) &&
-            ($stmtMA = $db->prepare($sqlUpdateMA))  &&
-            ($stmtLgbtqLes = $db->prepare($sqlUpdateLgbtqLes)) &&
-            ($stmtLgbtqGay = $db->prepare($sqlUpdateLgbtqGay)) &&
-            ($stmtBothFM = $db->prepare($sqlUpdateBothFM)) &&
-            ($stmtLgbtqBoth = $db->prepare($sqlUpdateLgbtqBoth))) {
-        $stmtFE->bind_param("i", $feLimit); // Assuming $feLimit is an integer
-        $stmtMA->bind_param("i", $maLimit); // Assuming $maLimit is an integer
-    $stmtLgbtqLes->bind_param("i", $lesLimit); // Assuming $lesLimit is an integer
-    $stmtLgbtqGay->bind_param("i", $gayLimit); // Assuming $gayLimit is an integer
-    $stmtBothFM->bind_param("i", $bothFMLimit); // Assuming $bothFMLimit is an integer
-    $stmtLgbtqBoth->bind_param("i", $lgbtqBothLimit); // Assuming $lgbtqBothLimit is an integer
-        
-        // Execute FE category update
-        $stmtFE->execute();
-
-        // Execute MA category update
-        $stmtMA->execute();
-
-        // Execute LES category update
-        $stmtLgbtqLes->execute();
-
-        // Execute GAY category update
-        $stmtLgbtqGay->execute();
-
-    // Execute Both FE/MA category update
-    $stmtBothFM->execute();
-
-    // Execute LGBTQ Both category update
-    $stmtLgbtqBoth->execute();
-
-        // Check if any update was successful
-    if ($stmtFE->affected_rows > 0 || $stmtMA->affected_rows > 0 || $stmtLgbtqLes->affected_rows > 0 || $stmtLgbtqGay->affected_rows > 0 || $stmtBothFM->affected_rows > 0 || $stmtLgbtqBoth->affected_rows > 0) {
-            echo "Contestants Added to Finalist!";
-        } else {
-            echo "No Contestants Added!";
+        // Get all preliminary events
+        $events = [];
+        $stmt = $db->prepare("SELECT code FROM event WHERE event_type = 'PR'");
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $events[] = $row['code'];
         }
 
-        $stmtFE->close();
-        $stmtMA->close();
-        $stmtLgbtqLes->close();
-    $stmtLgbtqGay->close();
-    $stmtBothFM->close();
-    $stmtLgbtqBoth->close();
-        
+        // Get criteria percentages per event
+        $criteriaByEvent = [];
+        foreach ($events as $eventCode) {
+            $stmt = $db->prepare("SELECT SUM(percent) as percent FROM event_criteria WHERE event_code = ?");
+            $stmt->bind_param("s", $eventCode);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $row = $res->fetch_assoc();
+            $criteriaByEvent[$eventCode] = $row ? (float)$row['percent'] : 0.0;
         }
 
-        else {
-            echo "Error preparing statement: " . $db->error;
+        // Process each category
+        $categories = [
+            'FE' => ['judges' => ['FE', 'B']],
+            'MA' => ['judges' => ['MA', 'B']],
+            'LGBTQ-LES' => ['judges' => ['LGBTQ-LES', 'LGBTQ-B']],
+            'LGBTQ-GAY' => ['judges' => ['LGBTQ-GAY', 'LGBTQ-B']],
+            'B' => ['judges' => ['B']],
+            'LGBTQ-B' => ['judges' => ['LGBTQ-B']]
+        ];
+
+        foreach ($categories as $categoryCode => $catInfo) {
+            // Get contestants in this category
+            $stmt = $db->prepare("SELECT code FROM contestant WHERE category_code = ?");
+            $stmt->bind_param("s", $categoryCode);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $contestants = [];
+            while ($row = $res->fetch_assoc()) {
+                $contestants[] = $row['code'];
+            }
+
+            if (empty($contestants)) continue;
+
+            // Get judge count for this category
+            $judgeCategories = implode("','", $catInfo['judges']);
+            $judgeCountRes = $db->query("SELECT COUNT(*) as cnt FROM user WHERE types = 'isJudge' AND category IN ('$judgeCategories')");
+            $judgeCount = $judgeCountRes->fetch_assoc()['cnt'];
+
+            if ($judgeCount == 0) continue;
+
+            // Calculate scores for each contestant
+            $contestantScores = [];
+            foreach ($contestants as $contestantCode) {
+                $totalOverallScore = 0.0;
+                $overallPossible = 0.0;
+                $averagePoint = 0.0;
+                $eventCount = 0;
+
+                foreach ($events as $eventCode) {
+                    $evCrit = $criteriaByEvent[$eventCode];
+                    $evPossible = $evCrit * $judgeCount;
+
+                    // Get sum of scores for this contestant, event, from eligible judges
+                    $judgeCategories = implode("','", $catInfo['judges']);
+                    $stmt = $db->prepare("SELECT SUM(score) as total FROM event_score WHERE contestant_code = ? AND event_code = ? AND category_code IN ('$judgeCategories')");
+                    $stmt->bind_param("ss", $contestantCode, $eventCode);
+                    $stmt->execute();
+                    $res = $stmt->get_result();
+                    $row = $res->fetch_assoc();
+                    $judgeScore = $row ? (float)$row['total'] : 0.0;
+
+                    if ($evPossible > 0) {
+                        $totalOverallScore += $judgeScore;
+                        $overallPossible += $evPossible;
+                        
+                        if ($weightedScoring == 0) {
+                            // Point system: average points per judge for this event
+                            $pointsAvg = $judgeScore / $judgeCount;
+                            $averagePoint += $pointsAvg;
+                            $eventCount++;
+                        }
+                    }
+                }
+
+                // Calculate final score based on scoring mode
+                if ($weightedScoring == 1) {
+                    // Percentage system
+                    $finalScore = ($overallPossible > 0) ? ($totalOverallScore / $overallPossible * 100.0) : 0.0;
+                } else {
+                    // Point system: average of per-event averages
+                    $finalScore = ($eventCount > 0) ? ($averagePoint / $eventCount) : 0.0;
+                }
+
+                $contestantScores[$contestantCode] = $finalScore;
+            }
+
+            // Sort by score descending
+            arsort($contestantScores);
+
+            // Mark top N as finalists
+            $rank = 0;
+            foreach ($contestantScores as $contestantCode => $score) {
+                $rank++;
+                if ($rank <= $conditionFinal) {
+                    $stmt = $db->prepare("UPDATE contestant SET is_finalist = '1' WHERE code = ?");
+                    $stmt->bind_param("s", $contestantCode);
+                    $stmt->execute();
+                }
+            }
         }
 
+        echo "Contestants Added to Finalist!";
     } else {
         echo "Error resetting is_finalist column: " . $db->error;
     }

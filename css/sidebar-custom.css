@@ -1,0 +1,76 @@
+/* Sidebar positioning - always on left for all viewports */
+#layoutSidenav_nav {
+    position: fixed !important;
+    left: 0 !important;
+    top: 56px;
+    width: 225px;
+    height: calc(100vh - 56px);
+    z-index: 1038;
+}
+
+/* Adjust content area to account for fixed sidebar */
+#layoutSidenav_content {
+    margin-left: 225px;
+}
+
+/* Sidebar footer with centered logo, pageant name, and logout */
+.sb-sidenav-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem !important;
+}
+
+.sb-sidenav-footer .sidebar-logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.5rem;
+    border-radius: 50%;
+}
+
+.sb-sidenav-footer .sidebar-pageant-name {
+    font-size: 0.875rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #ffc107;
+}
+
+.sb-sidenav-footer .sidebar-user-name {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.sb-sidenav-footer .btn-logout {
+    width: 100%;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    #layoutSidenav_nav {
+        left: -225px;
+        transition: left 0.3s ease;
+    }
+    
+    #layoutSidenav_nav.show {
+        left: 0;
+    }
+    
+    #layoutSidenav_content {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 767px) {
+    #layoutSidenav_nav {
+        width: 100%;
+        left: -100%;
+    }
+    
+    #layoutSidenav_nav.show {
+        left: 0;
+    }
+}

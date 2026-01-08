@@ -184,7 +184,6 @@ CREATE TABLE `user` (
   `name` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `types` varchar(45) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
   `category` varchar(15) DEFAULT NULL,
-  `is_both` tinyint(1) DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
   `added_by` varchar(16) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `added_timestamp` timestamp NULL DEFAULT NULL,
@@ -200,7 +199,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'000001','trident','tri123','TRIDENT','isSuper',NULL,NULL,1,'','2022-11-14 06:08:05','000001','2023-11-03 11:56:42'),(5805,'000002','admin','admin123','Admin','isAdmin',NULL,NULL,1,NULL,NULL,NULL,NULL),(5822,'000003','j1','j1','Judge1-NOLI DE CASTRO','isJudge','FE',1,1,'000001','2024-09-26 00:29:36','000001','2025-08-26 12:19:20'),(5823,'000004','j2','j2','Thor Son of Oden','isJudge','FE',1,1,'000001','2024-12-07 14:02:35','000001','2025-02-10 12:01:57'),(5824,'000005','j3','j3','Kratos','isJudge','FE',1,1,'000001','2024-12-07 14:03:03','000001','2025-02-10 12:02:02'),(5829,'000006','j4','j4','Pak','isJudge','B',1,1,'000001','2025-08-26 12:19:38',NULL,NULL);
+INSERT INTO `user` VALUES (1,'000001','trident','tri123','TRIDENT','isSuper',NULL,1,'','2022-11-14 06:08:05','000001','2023-11-03 11:56:42'),(5805,'000002','admin','admin123','Admin','isAdmin',NULL,1,NULL,NULL,NULL,NULL),(5822,'000003','j1','j1','Judge1-NOLI DE CASTRO','isJudge','FE',1,'000001','2024-09-26 00:29:36','000001','2025-08-26 12:19:20'),(5823,'000004','j2','j2','Thor Son of Oden','isJudge','FE',1,'000001','2024-12-07 14:02:35','000001','2025-02-10 12:01:57'),(5824,'000005','j3','j3','Kratos','isJudge','LGBTQ-LES',1,'000001','2024-12-07 14:03:03','000001','2025-02-10 12:02:02'),(5829,'000006','j4','j4','Pak','isJudge','B',1,'000001','2025-08-26 12:19:38',NULL,NULL);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -213,4 +212,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-28 23:05:46
+-- Dump completed on 2025-08-29 15:08:54

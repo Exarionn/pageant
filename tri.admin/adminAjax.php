@@ -157,7 +157,7 @@ if(isset($_POST['event_category'])) {
 
 
     // Function to generate category table
-    function generateCategoryTable($contestants, $categoryName, $categoryClass, $tableId, $judgeQuery, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral) {
+    function generateCategoryTable($contestants, $categoryName, $categoryClass, $tableId, $judgeQuery, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, $categoryCode) {
         if (empty($contestants)) return '';
         
         $output = '';
@@ -174,8 +174,27 @@ if(isset($_POST['event_category'])) {
                                 <tr>
                                     <th><div class="small" align="center">Candidate No.</div></th>';
         
-        // Get judge list
-        $stmt = $db->prepare($judgeQuery);
+        // Get judge list - include "Both" judges for Female/Male categories
+        if ($categoryCode == 'FE') {
+            // Female: include FE judges + B judges
+            $judgeQuery = "SELECT code, name, category from user WHERE types = 'isJudge' AND category IN ('FE', 'B') ORDER BY code ASC";
+            $stmt = $db->prepare($judgeQuery);
+        } elseif ($categoryCode == 'MA') {
+            // Male: include MA judges + B judges
+            $judgeQuery = "SELECT code, name, category from user WHERE types = 'isJudge' AND category IN ('MA', 'B') ORDER BY code ASC";
+            $stmt = $db->prepare($judgeQuery);
+        } elseif ($categoryCode == 'LGBTQ-LES') {
+            // Lesbian: include LGBTQ-LES judges + LGBTQ-B judges
+            $judgeQuery = "SELECT code, name, category from user WHERE types = 'isJudge' AND category IN ('LGBTQ-LES', 'LGBTQ-B') ORDER BY code ASC";
+            $stmt = $db->prepare($judgeQuery);
+        } elseif ($categoryCode == 'LGBTQ-GAY') {
+            // Gay: include LGBTQ-GAY judges + LGBTQ-B judges
+            $judgeQuery = "SELECT code, name, category from user WHERE types = 'isJudge' AND category IN ('LGBTQ-GAY', 'LGBTQ-B') ORDER BY code ASC";
+            $stmt = $db->prepare($judgeQuery);
+        } else {
+            // For B and LGBTQ-B categories, use only their specific judges
+            $stmt = $db->prepare($judgeQuery);
+        }
         $stmt->execute();
         $resultEventJudge = $stmt->get_result();
         
@@ -203,9 +222,10 @@ if(isset($_POST['event_category'])) {
             
             foreach ($resultEventJudge as $eventJudgeResult) {
                 $event_judge_code = $eventJudgeResult['code'];
+                $judge_category = $eventJudgeResult['category'];
                 $eventJudgeScoreQuery = judgeEventScoreList;
                 $stmt = $db->prepare($eventJudgeScoreQuery);
-                $stmt->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
+                $stmt->bind_param("ssss", $event_category, $contestantCode, $event_judge_code, $judge_category);
                 $stmt->execute();
                 $resultEventJudgeScore = $stmt->get_result();
                 
@@ -341,49 +361,49 @@ if(isset($_POST['event_category'])) {
                         <div class="tab-pane fade show active" id="all" role="tabpanel">';
 
         // Generate all category tables for "All Categories" tab
-        $summary .= generateCategoryTable($contestantsByCategoryFemale, 'Female', 'fm', 'data1', judgeByCategorySummaryListFemale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
-        $summary .= generateCategoryTable($contestantsByCategoryMale, 'Male', 'm', 'data2', judgeByCategorySummaryListMale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
-        $summary .= generateCategoryTable($contestantsByCategoryLesbian, 'Lesbian', 'ls', 'data3', judgeByCategorySummaryListLesbian, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
-        $summary .= generateCategoryTable($contestantsByCategoryGay, 'Gay', 'gy', 'data4', judgeByCategorySummaryListGay, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
-        $summary .= generateCategoryTable($contestantsByCategoryBothMF, 'Both Male and Female', 'bmf', 'data5', judgeByCategorySummaryListBothMF, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
-        $summary .= generateCategoryTable($contestantsByCategoryBothLGBTQ, 'Both LGBTQ', 'blgbtq', 'data6', judgeByCategorySummaryListBothLGBTQ, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+        $summary .= generateCategoryTable($contestantsByCategoryFemale, 'Female', 'fm', 'data1', judgeByCategorySummaryListFemale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'FE');
+        $summary .= generateCategoryTable($contestantsByCategoryMale, 'Male', 'm', 'data2', judgeByCategorySummaryListMale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'MA');
+        $summary .= generateCategoryTable($contestantsByCategoryLesbian, 'Lesbian', 'ls', 'data3', judgeByCategorySummaryListLesbian, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'LGBTQ-LES');
+        $summary .= generateCategoryTable($contestantsByCategoryGay, 'Gay', 'gy', 'data4', judgeByCategorySummaryListGay, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'LGBTQ-GAY');
+        $summary .= generateCategoryTable($contestantsByCategoryBothMF, 'Both Male and Female', 'bmf', 'data5', judgeByCategorySummaryListBothMF, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'B');
+        $summary .= generateCategoryTable($contestantsByCategoryBothLGBTQ, 'Both LGBTQ', 'blgbtq', 'data6', judgeByCategorySummaryListBothLGBTQ, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'LGBTQ-B');
         
         $summary .= '</div>'; // Close "All Categories" tab
         
         // Individual category tabs
         if (!empty($contestantsByCategoryFemale)) {
             $summary .= '<div class="tab-pane fade" id="female" role="tabpanel">';
-            $summary .= generateCategoryTable($contestantsByCategoryFemale, 'Female', 'fm', 'data1-single', judgeByCategorySummaryListFemale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= generateCategoryTable($contestantsByCategoryFemale, 'Female', 'fm', 'data1-single', judgeByCategorySummaryListFemale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'FE');
             $summary .= '</div>';
         }
         
         if (!empty($contestantsByCategoryMale)) {
             $summary .= '<div class="tab-pane fade" id="male" role="tabpanel">';
-            $summary .= generateCategoryTable($contestantsByCategoryMale, 'Male', 'm', 'data2-single', judgeByCategorySummaryListMale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= generateCategoryTable($contestantsByCategoryMale, 'Male', 'm', 'data2-single', judgeByCategorySummaryListMale, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'MA');
             $summary .= '</div>';
         }
         
         if (!empty($contestantsByCategoryLesbian)) {
             $summary .= '<div class="tab-pane fade" id="lesbian" role="tabpanel">';
-            $summary .= generateCategoryTable($contestantsByCategoryLesbian, 'Lesbian', 'ls', 'data3-single', judgeByCategorySummaryListLesbian, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= generateCategoryTable($contestantsByCategoryLesbian, 'Lesbian', 'ls', 'data3-single', judgeByCategorySummaryListLesbian, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'LGBTQ-LES');
             $summary .= '</div>';
         }
         
         if (!empty($contestantsByCategoryGay)) {
             $summary .= '<div class="tab-pane fade" id="gay" role="tabpanel">';
-            $summary .= generateCategoryTable($contestantsByCategoryGay, 'Gay', 'gy', 'data4-single', judgeByCategorySummaryListGay, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= generateCategoryTable($contestantsByCategoryGay, 'Gay', 'gy', 'data4-single', judgeByCategorySummaryListGay, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'LGBTQ-GAY');
             $summary .= '</div>';
         }
         
         if (!empty($contestantsByCategoryBothMF)) {
             $summary .= '<div class="tab-pane fade" id="bothmf" role="tabpanel">';
-            $summary .= generateCategoryTable($contestantsByCategoryBothMF, 'Both Male and Female', 'bmf', 'data5-single', judgeByCategorySummaryListBothMF, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= generateCategoryTable($contestantsByCategoryBothMF, 'Both Male and Female', 'bmf', 'data5-single', judgeByCategorySummaryListBothMF, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'B');
             $summary .= '</div>';
         }
         
         if (!empty($contestantsByCategoryBothLGBTQ)) {
             $summary .= '<div class="tab-pane fade" id="bothlgbtq" role="tabpanel">';
-            $summary .= generateCategoryTable($contestantsByCategoryBothLGBTQ, 'Both LGBTQ', 'blgbtq', 'data6-single', judgeByCategorySummaryListBothLGBTQ, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral);
+            $summary .= generateCategoryTable($contestantsByCategoryBothLGBTQ, 'Both LGBTQ', 'blgbtq', 'data6-single', judgeByCategorySummaryListBothLGBTQ, $db, $event_category, $fetchResultEvent, $fetchResultEventCriteriaPercentage, $conWeightedScoring, $conGeneral, 'LGBTQ-B');
             $summary .= '</div>';
         }
         

@@ -47,10 +47,75 @@
                             <fieldset>
                                 <div class="card">
                                     <div class="card-body">
+                                        <h5 class="mb-3">Instructions:</h5>
                                         <ul>
                                             <li><strong>Backup Database:</strong> Click this button to create a backup of the database.</li>
                                             <li><strong>Clear Score:</strong> Click this button to clear the current score.</li>
                                         </ul>
+
+                                        <h5 class="mt-4 mb-3">How to Set Up Events by Category:</h5>
+                                        <ol>
+                                            <li><strong>Create Contestants:</strong> Go to Contestant Management and assign each contestant to their category (Female, Male, Lesbian, Gay, Both M/F, or Both LGBTQ).</li>
+                                            <li><strong>Create Judges:</strong> Go to Judge Management and assign each judge to their category:
+                                                <ul>
+                                                    <li><strong>Female (FE)</strong> judges can score Female contestants only</li>
+                                                    <li><strong>Male (MA)</strong> judges can score Male contestants only</li>
+                                                    <li><strong>Both M/F (B)</strong> judges can score Female, Male, and Both M/F contestants</li>
+                                                    <li><strong>Lesbian (LGBTQ-LES)</strong> judges can score Lesbian contestants only</li>
+                                                    <li><strong>Gay (LGBTQ-GAY)</strong> judges can score Gay contestants only</li>
+                                                    <li><strong>Both LGBTQ (LGBTQ-B)</strong> judges can score Lesbian, Gay, and Both LGBTQ contestants</li>
+                                                </ul>
+                                            </li>
+                                            <li><strong>Create Events:</strong> Go to Event Management and create your preliminary, special, or final events.</li>
+                                            <li><strong>Create Criteria:</strong> Go to Criteria Management and assign criteria with percentages to each event.</li>
+                                            <li><strong>Judge Scoring:</strong> Judges will only see contestants that match their category permissions when they log in to score.</li>
+                                            <li><strong>View Results:</strong> Admin can view results by category in the Summary panels.</li>
+                                        </ol>
+
+                                        <h5 class="mt-4 mb-3">Current Judge-Contestant Category Logic:</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Judge Category</th>
+                                                        <th>Can Score These Contestants</th>
+                                                        <th>Included in Calculations For</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><strong>FE</strong> (Female)</td>
+                                                        <td>FE contestants only</td>
+                                                        <td>Female category results</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>MA</strong> (Male)</td>
+                                                        <td>MA contestants only</td>
+                                                        <td>Male category results</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>B</strong> (Both M/F)</td>
+                                                        <td>FE, MA, and B contestants</td>
+                                                        <td>Female, Male, and Both M/F category results</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>LGBTQ-LES</strong> (Lesbian)</td>
+                                                        <td>LGBTQ-LES contestants only</td>
+                                                        <td>Lesbian category results</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>LGBTQ-GAY</strong> (Gay)</td>
+                                                        <td>LGBTQ-GAY contestants only</td>
+                                                        <td>Gay category results</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>LGBTQ-B</strong> (Both LGBTQ)</td>
+                                                        <td>LGBTQ-LES, LGBTQ-GAY, and LGBTQ-B contestants</td>
+                                                        <td>Lesbian, Gay, and Both LGBTQ category results</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
 
                                         <div class="" align="center">
                                             <button class="btn btn-outline-success btn-sm me-5" onclick="backupButton()">Backup Database</button>

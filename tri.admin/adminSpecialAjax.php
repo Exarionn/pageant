@@ -163,8 +163,9 @@ if(isset($_POST['event_categorySpecial'])) {
 
             foreach ($judges as $j) {
                 $event_judge_code = $j['code'];
+                $judge_category = $j['category'];
                 $stmtS = $db->prepare(judgeEventScoreList);
-                $stmtS->bind_param("sss", $event_category, $contestantCode, $event_judge_code);
+                $stmtS->bind_param("ssss", $event_category, $contestantCode, $event_judge_code, $judge_category);
                 $stmtS->execute();
                 $resS = $stmtS->get_result();
                 $judgeScore = 0.0;

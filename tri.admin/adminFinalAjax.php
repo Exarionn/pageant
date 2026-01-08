@@ -194,9 +194,10 @@ if(isset($_POST['event_category_final'])) {
             
             foreach ($resultEventJudge as $eventJudgeResult) {
                 $event_judge_code = $eventJudgeResult['code'];
+                $judge_category = $eventJudgeResult['category'];
                 $eventJudgeScoreQuery = judgeEventScoreList;
                 $stmt = $db->prepare($eventJudgeScoreQuery);
-                $stmt->bind_param("sss", $event_category_final, $contestantCode, $event_judge_code);
+                $stmt->bind_param("ssss", $event_category_final, $contestantCode, $event_judge_code, $judge_category);
                 $stmt->execute();
                 $resultEventJudgeScore = $stmt->get_result();
                 
